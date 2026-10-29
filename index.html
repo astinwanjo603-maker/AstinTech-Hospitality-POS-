@@ -1,59 +1,630 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Astintech POS v7 - Dashboard Fixed - Complete - FULL CODE</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+<title>ASTINTECH POS V7</title>
 <style>
-:root{--bg:#f1f5f9;--card:#fff;--ink:#0f172a;--blue:#2563eb;--green:#16a34a;--red:#dc2626;--orange:#f59e0b;--dark:#0f172a;--purple:#7c3aed}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif}
-header{background:var(--dark);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:center}
-.badge{padding:5px 11px;border-radius:20px;font-size:10.5px;font-weight:800;color:#fff}
-.badge-super{background:#dc2626}.badge-admin{background:#7c3aed}.badge-manager{background:#f59e0b;color:#000}.badge-staff{background:#16a34a}
-.badge-online{background:#22c55e;color:#000}.badge-offline{background:#dc2626;color:#fff}
-nav{display:flex;gap:6px;overflow-x:auto;padding:10px;background:#fff;position:sticky;top:0;z-index:20;border-bottom:1px solid #e2e8f0}
-button{border:0;border-radius:9px;padding:10px 13px;background:var(--blue);color:white;font-weight:700;cursor:pointer;font-size:13px}
-nav button{white-space:nowrap;background:#e2e8f0;color:var(--ink);font-size:11.5px;padding:9px 11px}nav button.active{background:var(--blue);color:#fff}
-main{padding:14px;max-width:1280px;margin:auto}
-section{display:none}section.active{display:block !important}
-h2{font-size:18px;margin:12px 0}h3{font-size:15px;margin:10px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px}
-.card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 3px 10px #00000007;margin-bottom:12px;border:1px solid #eef2f7}
-.stat{font-size:22px;font-weight:900;margin-top:6px}
-.muted{color:#64748b;font-size:12px}
-label{display:block;font-size:11.5px;font-weight:700;margin:11px 0 5px}
-input,select,textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-size:13px}
-textarea{min-height:70px}form button{margin-top:12px;width:100%}
-table{width:100%;border-collapse:collapse;min-width:560px}
-th,td{text-align:left;padding:9px 7px;border-bottom:1px solid #eef2f7;font-size:12px}th{background:#f8fafc;font-weight:800}
-.tablewrap{overflow-x:auto}
-.small{padding:5px 9px;font-size:10.5px;margin:2px;border-radius:7px}.danger{background:var(--red)}.green{background:var(--green)}.orange{background:var(--orange)}.purple{background:var(--purple)}
-.notice{background:#eff6ff;padding:12px;border-radius:9px;font-size:12px;line-height:1.6;border:1px solid #dbeafe}
-footer{text-align:center;color:#64748b;padding:20px;font-size:10.5px;line-height:2}
-.login-wrap{max-width:520px;margin:30px auto;background:#fff;padding:26px;border-radius:16px;box-shadow:0 10px 30px #00000012}
-.bio-box{border:2px dashed #cbd5e1;border-radius:12px;padding:16px;text-align:center;margin:10px 0;background:#f8fafc}
-#receiptArea{display:none}
-@media print{body *{visibility:hidden}#receiptArea,#receiptArea *{visibility:visible}#receiptArea{position:absolute;left:0;top:0;width:80mm;display:block !important;background:#fff;padding:10px;color:#000}}
-.receipt{width:80mm;background:#fff;color:#000;font-family:'Courier New',monospace;font-size:12px;padding:12px;border:1px dashed #000;margin:auto}
-.sync-queue{max-height:240px;overflow:auto;background:#0f172a;color:#22c55e;padding:10px;border-radius:8px;font-family:monospace;font-size:11px}
-.step{border-left:4px solid var(--blue);padding:10px 14px;background:#f8fafc;margin:8px 0;border-radius:0 8px 8px 0}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f4f8;color:#172033}
+header{background:#101827;color:white;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header h2{margin:0}
+nav{background:#18283e;padding:10px;display:flex;gap:7px;overflow-x:auto}
+nav button{background:#263b57;color:white;white-space:nowrap}
+button{border:0;border-radius:6px;padding:11px 14px;background:#1765d1;color:white;font-weight:bold;cursor:pointer}
+input,select{width:100%;padding:11px;margin:5px 0 12px;border:1px solid #ccd4df;border-radius:6px;background:white}
+label{font-weight:bold;font-size:13px}
+main{padding:15px;max-width:1250px;margin:auto}
+section{display:none}
+section.active{display:block}
+.card{background:white;padding:16px;border-radius:10px;margin-bottom:14px;box-shadow:0 2px 8px #0000000b}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+.metric{font-size:25px;font-weight:bold;color:#1765d1;margin-top:8px}
+table{width:100%;border-collapse:collapse;min-width:520px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid #ddd;font-size:13px}
+.tablebox{overflow:auto}
+.secondary{background:#64748b}
+.danger{background:#b42318}
+.success{color:#087b4b;font-weight:bold}
+.notice{background:#fff3cd;padding:12px;border-radius:7px;font-size:13px;margin-bottom:12px}
+.small{font-size:12px;color:#68758a}
+.login{position:fixed;inset:0;background:#101827;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+.loginbox{background:white;padding:25px;border-radius:12px;width:100%;max-width:380px}
+.loginbox h1{text-align:center;color:#1765d1}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{margin-bottom:5px}
+#video{width:100%;max-width:500px;background:#111;border-radius:8px}
+.receipt{font-family:monospace;white-space:pre-wrap;border:1px dashed #aaa;padding:12px;background:white}
+@media print{header,nav,.no-print{display:none!important}body{background:white}main{padding:0}}
 </style>
 </head>
 <body>
-<div id="loginScreen">
-<div class="login-wrap">
-<h2 style="text-align:center;margin:0">Astintech POS v7 - FULL CODE BILA KUKATA</h2>
-<p class="muted" style="text-align:center">DASHBOARD FIXED - COMPLETE - OFFLINE PWA</p>
-<div style="display:flex;gap:8px;justify-content:center;margin:10px 0">
-<span id="connBadgeLogin" class="badge badge-online">ONLINE</span>
-<span class="badge" style="background:#22c55e;color:#000">Dashboard Fixed</span>
-</div>
-<div class="notice" style="margin:12px 0">
-<b>Login Default</b><br>Username: superadmin<br>Password: Astintech@2026<br>PIN: 1234
-</div>
-<form id="loginForm">
-<label>Username</label><input id="loginUser" required value="superadmin">
-<label>Password</label><input id="loginPass" type="password" required value="Astintech@2026">
-<button type="submit" style="width:100%;background:#16a34a">LOGIN & OPEN DASHBOARD</button>
-</form>
+
+<div class="login" id="login">
+<div class="loginbox">
+<h1>ASTINTECH POS</h1>
+<p style="text-align:center">Professional Business Management</p>
+<label>Username</label>
+<input id="username" value="superadmin">
+<label>Password</label>
+<input id="password" type="password" placeholder="Enter password">
+<button style="width:100%" onclick="login()">LOGIN</button>
+<p id="loginError" style="color:red"></p>
+<p class="small">Demo login: superadmin / Astintech@2026</p>
 </div>
 </div>
+
+<header>
+<div>
+<h2>ASTINTECH POS</h2>
+<small>Powered by Astintech</small>
+</div>
+<div>
+<span id="network">ONLINE</span>
+<button class="secondary" onclick="logout()">Logout</button>
+</div>
+</header>
+
+<nav class="no-print">
+<button onclick="show('dashboard')">Dashboard</button>
+<button onclick="show('business')">Business Setup</button>
+<button onclick="show('products')">Products</button>
+<button onclick="show('sales')">Sales / POS</button>
+<button onclick="show('scanner')">QR Scanner</button>
+<button onclick="show('users')">Users & Roles</button>
+<button onclick="show('security')">Security</button>
+<button onclick="show('sync')">Sync & Offline</button>
+<button onclick="show('expenses')">Expenses</button>
+<button onclick="show('reports')">Reports</button>
+<button onclick="show('backup')">Backup</button>
+</nav>
+
+<main>
+
+<section id="dashboard" class="active">
+<h2>Business Dashboard</h2>
+<div class="grid">
+<div class="card">Products<div class="metric" id="totalProducts">0</div></div>
+<div class="card">Stock Units<div class="metric" id="totalStock">0</div></div>
+<div class="card">Today's Sales<div class="metric" id="todaySales">0</div></div>
+<div class="card">Transactions<div class="metric" id="totalSales">0</div></div>
+</div>
+<div class="card">
+<h3>Recent Sales</h3>
+<div class="tablebox">
+<table>
+<thead><tr><th>Receipt</th><th>Product</th><th>Quantity</th><th>Total</th></tr></thead>
+<tbody id="recent"></tbody>
+</table>
+</div>
+</div>
+<div class="card">
+<h3>Low Stock Alerts</h3>
+<div id="alerts">No alerts</div>
+</div>
+</section>
+
+<section id="business">
+<div class="card">
+<h2>Business Setup</h2>
+<label>Business Name</label>
+<input id="bname" placeholder="Enter business name">
+<label>Business Type</label>
+<select id="btype">
+<option>Shop</option><option>Restaurant</option><option>Bar</option><option>General</option>
+</select>
+<label>Business Phone</label>
+<input id="bphone" placeholder="Business phone">
+<label>Business Location</label>
+<input id="blocation" placeholder="Business location">
+<button onclick="saveBusiness()">SAVE BUSINESS</button>
+</div>
+</section>
+
+<section id="products">
+<div class="card">
+<h2>Add Product</h2>
+<input type="hidden" id="editId">
+<label>Product Name</label>
+<input id="pname" placeholder="Product name">
+<label>Barcode / SKU</label>
+<input id="barcode" placeholder="Barcode">
+<label>Buying Cost</label>
+<input id="cost" type="number" min="0" placeholder="Buying cost">
+<label>Selling Price</label>
+<input id="price" type="number" min="0" placeholder="Selling price">
+<label>Quantity</label>
+<input id="qty" type="number" min="0" placeholder="Stock quantity">
+<label>Low Stock Alert</label>
+<input id="low" type="number" min="0" value="5">
+<button onclick="saveProduct()">SAVE PRODUCT</button>
+<button class="secondary" onclick="clearProduct()">CLEAR</button>
+</div>
+<div class="card">
+<h3>Product Inventory</h3>
+<div class="tablebox">
+<table>
+<thead><tr><th>Name</th><th>Barcode</th><th>Cost</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead>
+<tbody id="productRows"></tbody>
+</table>
+</div>
+</div>
+</section>
+
+<section id="sales">
+<div class="card">
+<h2>Sales / Point of Sale</h2>
+<label>Select Product</label>
+<select id="saleProduct" onchange="updateTotal()"></select>
+<label>Quantity</label>
+<input id="saleQty" type="number" min="1" value="1" oninput="updateTotal()">
+<label>Selling Price</label>
+<input id="salePrice" type="number" min="0" oninput="updateTotal()">
+<label>Customer Name</label>
+<input id="customer" placeholder="Walk-in customer">
+<label>Payment Method</label>
+<select id="payment">
+<option>Cash</option><option>M-Pesa</option><option>Card</option><option>Credit</option>
+</select>
+<h3 id="saleTotal">Total: KSh 0</h3>
+<button onclick="recordSale()">RECORD SALE + RECEIPT</button>
+</div>
+<div class="card">
+<h3>Receipt</h3>
+<div class="receipt" id="receipt">No receipt yet.</div>
+<div class="actions">
+<button onclick="printReceipt()">PRINT RECEIPT</button>
+<button class="secondary" onclick="downloadReceipt()">DOWNLOAD</button>
+</div>
+</div>
+</section>
+
+<section id="scanner">
+<div class="card">
+<h2>QR / Barcode Scanner</h2>
+<p class="small">Camera access requires browser permission and HTTPS or localhost. BarcodeDetector support varies by browser.</p>
+<button onclick="startScanner()">START CAMERA</button>
+<button class="secondary" onclick="stopScanner()">STOP CAMERA</button>
+<br><br>
+<video id="video" playsinline></video>
+<p id="scanResult">Scanner stopped.</p>
+<label>Manual Barcode Entry</label>
+<input id="manualCode" placeholder="Enter barcode">
+<button onclick="findBarcode()">SEARCH PRODUCT</button>
+</div>
+</section>
+
+<section id="users">
+<div class="card">
+<h2>Create User</h2>
+<label>Full Name</label>
+<input id="newName">
+<label>Username</label>
+<input id="newUsername">
+<label>Password</label>
+<input id="newPassword" type="password">
+<label>PIN</label>
+<input id="newPin" maxlength="4" inputmode="numeric">
+<label>Role</label>
+<select id="newRole">
+<option>Admin</option><option>Manager</option><option>Staff</option>
+</select>
+<button onclick="createUser()">CREATE USER</button>
+</div>
+<div class="card">
+<h3>System Users</h3>
+<div id="userRows"></div>
+</div>
+</section>
+
+<section id="security">
+<div class="card">
+<h2>Security Settings</h2>
+<div class="notice">Biometric enrollment is not implemented in this standalone edition. Device/browser authentication integration is required.</div>
+<label>New Password</label>
+<input id="changePassword" type="password">
+<label>New 4-digit PIN</label>
+<input id="changePin" maxlength="4" inputmode="numeric">
+<label><input type="checkbox" id="autoPrint" style="width:auto"> Enable automatic print prompt</label>
+<button onclick="saveSecurity()">SAVE SECURITY SETTINGS</button>
+</div>
+</section>
+
+<section id="sync">
+<div class="card">
+<h2>Sync & Offline</h2>
+<h3 id="connection">Checking connection...</h3>
+<p id="syncInfo">Local storage status.</p>
+<button onclick="checkNetwork()">CHECK CONNECTION</button>
+<div class="notice">This standalone file does not have a cloud server. Internet availability does not automatically synchronize records to other devices.</div>
+</div>
+</section>
+
+<section id="expenses">
+<div class="card">
+<h2>Record Expense</h2>
+<label>Description</label>
+<input id="expenseName">
+<label>Category</label>
+<select id="expenseCategory">
+<option>Supplies</option><option>Transport</option><option>Rent</option><option>Utilities</option><option>Other</option>
+</select>
+<label>Amount</label>
+<input id="expenseAmount" type="number" min="0">
+<button onclick="addExpense()">RECORD EXPENSE</button>
+</div>
+<div class="card">
+<h3>Expenses</h3>
+<div id="expenseRows"></div>
+</div>
+</section>
+
+<section id="reports">
+<div class="card">
+<h2>Business Reports</h2>
+<p id="reportSales"></p>
+<p id="reportExpenses"></p>
+<p id="profit"></p>
+<button onclick="exportCSV()">DOWNLOAD SALES CSV</button>
+</div>
+</section>
+
+<section id="backup">
+<div class="card">
+<h2>Backup & Restore</h2>
+<button onclick="backup()">DOWNLOAD BACKUP JSON</button>
+<br><br>
+<label>Restore Backup</label>
+<input type="file" id="restoreFile" accept=".json,application/json">
+<button onclick="restore()">RESTORE DATA</button>
+<p class="small">Keep backups secure. Restoring replaces the current local database.</p>
+</div>
+</section>
+
+</main>
+
+<script>
+const KEY="ASTINTECH_POS_V7";
+const defaults=()=>({
+business:{name:"Astintech POS",type:"General",phone:"",location:""},
+products:[],
+sales:[],
+users:[{name:"Super Admin",username:"superadmin",password:"Astintech@2026",pin:"2026",role:"Super Admin"}],
+expenses:[],
+settings:{autoPrint:false}
+});
+let db;
+try{db=JSON.parse(localStorage.getItem(KEY))||defaults()}catch(e){db=defaults()}
+let receiptText="";
+let stream=null;
+let scanTimer=null;
+let currentUser=null;
+
+function save(){
+localStorage.setItem(KEY,JSON.stringify(db));
+render();
+}
+
+function money(n){
+return "KSh "+Number(n||0).toLocaleString("en-KE",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function show(id){
+document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+render();
+}
+
+function login(){
+let u=document.getElementById("username").value.trim();
+let p=document.getElementById("password").value;
+let found=db.users.find(x=>x.username===u&&x.password===p);
+if(!found){
+document.getElementById("loginError").textContent="Incorrect username or password";
+return;
+}
+currentUser=found;
+document.getElementById("login").style.display="none";
+render();
+}
+
+function logout(){
+stopScanner();
+currentUser=null;
+document.getElementById("login").style.display="flex";
+}
+
+function saveBusiness(){
+db.business.name=document.getElementById("bname").value;
+db.business.type=document.getElementById("btype").value;
+db.business.phone=document.getElementById("bphone").value;
+db.business.location=document.getElementById("blocation").value;
+save();
+alert("Business details saved");
+}
+
+function clearProduct(){
+["editId","pname","barcode","cost","price","qty"].forEach(id=>document.getElementById(id).value="");
+document.getElementById("low").value=5;
+}
+
+function saveProduct(){
+let name=document.getElementById("pname").value.trim();
+if(!name)return alert("Enter product name");
+let id=document.getElementById("editId").value;
+let p={
+id:id||String(Date.now()),
+name,
+barcode:document.getElementById("barcode").value.trim(),
+cost:Number(document.getElementById("cost").value),
+price:Number(document.getElementById("price").value),
+qty:Number(document.getElementById("qty").value),
+low:Number(document.getElementById("low").value)
+};
+if(p.cost<0||p.price<0||p.qty<0)return alert("Enter valid values");
+let index=db.products.findIndex(x=>x.id===id);
+if(index>=0)db.products[index]=p;
+else db.products.push(p);
+clearProduct();
+save();
+alert("Product saved");
+}
+
+function editProduct(id){
+let p=db.products.find(x=>x.id===id);
+if(!p)return;
+document.getElementById("editId").value=p.id;
+document.getElementById("pname").value=p.name;
+document.getElementById("barcode").value=p.barcode;
+document.getElementById("cost").value=p.cost;
+document.getElementById("price").value=p.price;
+document.getElementById("qty").value=p.qty;
+document.getElementById("low").value=p.low;
+show("products");
+}
+
+function deleteProduct(id){
+if(!confirm("Delete product?"))return;
+db.products=db.products.filter(x=>x.id!==id);
+save();
+}
+
+function updateTotal(){
+let p=db.products.find(x=>x.id===document.getElementById("saleProduct").value);
+if(p)document.getElementById("salePrice").value=p.price;
+let q=Number(document.getElementById("saleQty").value)||0;
+let price=Number(document.getElementById("salePrice").value)||0;
+document.getElementById("saleTotal").textContent="Total: "+money(q*price);
+}
+
+function recordSale(){
+let id=document.getElementById("saleProduct").value;
+let p=db.products.find(x=>x.id===id);
+let q=Number(document.getElementById("saleQty").value);
+let price=Number(document.getElementById("salePrice").value);
+if(!p)return alert("Select a product");
+if(!Number.isInteger(q)||q<1)return alert("Enter a valid quantity");
+if(q>p.qty)return alert("Insufficient stock");
+if(price<0)return alert("Invalid selling price");
+p.qty-=q;
+let s={
+id:"AT"+Date.now(),
+date:new Date().toISOString(),
+product:p.name,
+productId:p.id,
+qty:q,
+price,
+total:q*price,
+cost:p.cost*q,
+customer:document.getElementById("customer").value||"Walk-in",
+payment:document.getElementById("payment").value
+};
+db.sales.push(s);
+receiptText=
+db.business.name+"\n"+
+(db.business.location||"")+"\n"+
+"--------------------------------\n"+
+"RECEIPT: "+s.id+"\n"+
+"DATE: "+new Date(s.date).toLocaleString()+"\n"+
+"CUSTOMER: "+s.customer+"\n"+
+"--------------------------------\n"+
+s.product+"\n"+
+s.qty+" x "+money(s.price)+"\n"+
+"TOTAL: "+money(s.total)+"\n"+
+"PAYMENT: "+s.payment+"\n"+
+"--------------------------------\n"+
+"THANK YOU!\nPowered by Astintech\nSupport: 0707857245";
+document.getElementById("receipt").textContent=receiptText;
+save();
+document.getElementById("saleQty").value=1;
+document.getElementById("customer").value="";
+render();
+if(db.settings.autoPrint)setTimeout(printReceipt,300);
+alert("Sale recorded successfully");
+}
+
+function printReceipt(){
+if(!receiptText)return alert("No receipt available");
+let w=window.open("","_blank","width=400,height=600");
+if(!w)return alert("Allow pop-ups to print");
+let pre=w.document.createElement("pre");
+pre.textContent=receiptText;
+pre.style.cssText="font:12px monospace;white-space:pre-wrap";
+w.document.body.appendChild(pre);
+w.document.title="Astintech Receipt";
+w.print();
+}
+
+function downloadReceipt(){
+if(!receiptText)return alert("No receipt available");
+downloadFile("Astintech_Receipt.txt",receiptText,"text/plain");
+}
+
+function createUser(){
+let name=document.getElementById("newName").value.trim();
+let username=document.getElementById("newUsername").value.trim();
+let password=document.getElementById("newPassword").value;
+let pin=document.getElementById("newPin").value;
+if(!name||!username||password.length<6||!/^\d{4}$/.test(pin))return alert("Fill all fields. Password needs 6 characters and PIN 4 digits.");
+if(db.users.some(u=>u.username===username))return alert("Username already exists");
+db.users.push({name,username,password,pin,role:document.getElementById("newRole").value});
+save();
+alert("User created");
+}
+
+function saveSecurity(){
+let p=document.getElementById("changePassword").value;
+let pin=document.getElementById("changePin").value;
+if(p&&p.length<8)return alert("Password must have at least 8 characters");
+if(pin&&!/^\d{4}$/.test(pin))return alert("PIN must contain 4 digits");
+let user=db.users.find(x=>x.username===currentUser.username);
+if(p)user.password=p;
+if(pin)user.pin=pin;
+db.settings.autoPrint=document.getElementById("autoPrint").checked;
+save();
+alert("Settings saved");
+}
+
+function addExpense(){
+let name=document.getElementById("expenseName").value.trim();
+let amount=Number(document.getElementById("expenseAmount").value);
+if(!name||amount<=0)return alert("Enter description and valid amount");
+db.expenses.push({name,amount,category:document.getElementById("expenseCategory").value,date:new Date().toISOString()});
+save();
+document.getElementById("expenseName").value="";
+document.getElementById("expenseAmount").value="";
+}
+
+function render(){
+document.getElementById("bname").value=db.business.name||"";
+document.getElementById("btype").value=db.business.type||"General";
+document.getElementById("bphone").value=db.business.phone||"";
+document.getElementById("blocation").value=db.business.location||"";
+document.getElementById("autoPrint").checked=!!db.settings.autoPrint;
+
+document.getElementById("totalProducts").textContent=db.products.length;
+document.getElementById("totalStock").textContent=db.products.reduce((a,p)=>a+p.qty,0);
+let today=new Date().toDateString();
+let todays=db.sales.filter(s=>new Date(s.date).toDateString()===today);
+document.getElementById("todaySales").textContent=money(todays.reduce((a,s)=>a+s.total,0));
+document.getElementById("totalSales").textContent=db.sales.length;
+
+document.getElementById("productRows").innerHTML=db.products.map(p=>
+`<tr><td>${safe(p.name)}</td><td>${safe(p.barcode)}</td><td>${money(p.cost)}</td><td>${money(p.price)}</td><td>${p.qty}</td><td><button onclick="editProduct('${p.id}')">Edit</button> <button class="danger" onclick="deleteProduct('${p.id}')">Delete</button></td></tr>`
+).join("");
+
+document.getElementById("saleProduct").innerHTML='<option value="">Select Product</option>'+db.products.map(p=>`<option value="${p.id}">${safe(p.name)} - ${money(p.price)} (Stock ${p.qty})</option>`).join("");
+
+document.getElementById("recent").innerHTML=db.sales.slice(-8).reverse().map(s=>
+`<tr><td>${safe(s.id)}</td><td>${safe(s.product)}</td><td>${s.qty}</td><td>${money(s.total)}</td></tr>`
+).join("");
+
+let low=db.products.filter(p=>p.qty<=p.low);
+document.getElementById("alerts").innerHTML=low.length?low.map(p=>`<p>${safe(p.name)}: ${p.qty} remaining</p>`).join(""):"No low-stock alerts";
+
+document.getElementById("userRows").innerHTML=db.users.map(u=>`<p>${safe(u.name)} — ${safe(u.username)} — ${safe(u.role)}</p>`).join("");
+
+document.getElementById("expenseRows").innerHTML=db.expenses.map(e=>`<p>${safe(e.date.slice(0,10))} | ${safe(e.name)} | ${money(e.amount)}</p>`).join("");
+
+let sales=db.sales.reduce((a,s)=>a+s.total,0);
+let expenses=db.expenses.reduce((a,e)=>a+e.amount,0);
+let costs=db.sales.reduce((a,s)=>a+(s.cost||0),0);
+document.getElementById("reportSales").textContent="Total Sales: "+money(sales);
+document.getElementById("reportExpenses").textContent="Expenses: "+money(expenses);
+document.getElementById("profit").textContent="Estimated Profit: "+money(sales-costs-expenses);
+
+document.getElementById("network").textContent=navigator.onLine?"ONLINE":"OFFLINE";
+document.getElementById("connection").textContent=navigator.onLine?"ONLINE":"OFFLINE";
+document.getElementById("syncInfo").textContent=db.sales.length+" sales stored locally. Cloud sync server not configured.";
+}
+
+function checkNetwork(){render();alert(navigator.onLine?"Internet connection available. No server is configured.":"You are offline. Local storage remains available.");}
+
+function safe(s){
+return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function downloadFile(name,content,type){
+let blob=new Blob([content],{type});
+let url=URL.createObjectURL(blob);
+let a=document.createElement("a");
+a.href=url;a.download=name;a.click();
+URL.revokeObjectURL(url);
+}
+
+function exportCSV(){
+let rows=[["Receipt","Date","Product","Quantity","Price","Payment","Total"]];
+db.sales.forEach(s=>rows.push([s.id,s.date,s.product,s.qty,s.price,s.payment,s.total]));
+let csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
+downloadFile("Astintech_Sales.csv",csv,"text/csv");
+}
+
+function backup(){
+downloadFile("Astintech_POS_Backup.json",JSON.stringify(db,null,2),"application/json");
+}
+
+function restore(){
+let f=document.getElementById("restoreFile").files[0];
+if(!f)return alert("Select a backup file");
+let reader=new FileReader();
+reader.onload=()=>{
+try{
+let data=JSON.parse(reader.result);
+if(!data.business||!Array.isArray(data.products)||!Array.isArray(data.sales)||!Array.isArray(data.users))throw Error();
+if(!confirm("Replace current data with backup?"))return;
+db=data;save();alert("Backup restored");
+}catch(e){alert("Invalid backup file")}
+};
+reader.readAsText(f);
+}
+
+async function startScanner(){
+if(!("BarcodeDetector" in window))return alert("This browser does not support camera barcode scanning. Use manual entry.");
+try{
+stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+let video=document.getElementById("video");
+video.srcObject=stream;
+await video.play();
+let detector=new BarcodeDetector();
+scanTimer=setInterval(async()=>{
+try{
+let codes=await detector.detect(video);
+if(codes.length){
+let code=codes[0].rawValue;
+document.getElementById("manualCode").value=code;
+findBarcode();
+}
+}catch(e){}
+},700);
+document.getElementById("scanResult").textContent="Camera scanning active";
+}catch(e){alert("Camera permission failed. Use HTTPS and allow camera access.");}
+}
+
+function stopScanner(){
+if(scanTimer)clearInterval(scanTimer);
+scanTimer=null;
+if(stream)stream.getTracks().forEach(t=>t.stop());
+stream=null;
+document.getElementById("video").srcObject=null;
+document.getElementById("scanResult").textContent="Scanner stopped";
+}
+
+function findBarcode(){
+let code=document.getElementById("manualCode").value.trim();
+let p=db.products.find(x=>x.barcode===code);
+if(!p)return alert("Product not found");
+show("sales");
+document.getElementById("saleProduct").value=p.id;
+document.getElementById("salePrice").value=p.price;
+updateTotal();
+alert("Product found: "+p.name);
+}
+
+window.addEventListener("online",render);
+window.addEventListener("offline",render);
+render();
+</script>
+</body>
+</html>
