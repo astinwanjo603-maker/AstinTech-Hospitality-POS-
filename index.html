@@ -1,630 +1,205 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#101827">
-<title>ASTINTECH POS V7</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f1f4f8;color:#172033}
-header{background:#101827;color:white;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-header h2{margin:0}
-nav{background:#18283e;padding:10px;display:flex;gap:7px;overflow-x:auto}
-nav button{background:#263b57;color:white;white-space:nowrap}
-button{border:0;border-radius:6px;padding:11px 14px;background:#1765d1;color:white;font-weight:bold;cursor:pointer}
-input,select{width:100%;padding:11px;margin:5px 0 12px;border:1px solid #ccd4df;border-radius:6px;background:white}
-label{font-weight:bold;font-size:13px}
-main{padding:15px;max-width:1250px;margin:auto}
-section{display:none}
-section.active{display:block}
-.card{background:white;padding:16px;border-radius:10px;margin-bottom:14px;box-shadow:0 2px 8px #0000000b}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
-.metric{font-size:25px;font-weight:bold;color:#1765d1;margin-top:8px}
-table{width:100%;border-collapse:collapse;min-width:520px}
-th,td{text-align:left;padding:10px;border-bottom:1px solid #ddd;font-size:13px}
-.tablebox{overflow:auto}
-.secondary{background:#64748b}
-.danger{background:#b42318}
-.success{color:#087b4b;font-weight:bold}
-.notice{background:#fff3cd;padding:12px;border-radius:7px;font-size:13px;margin-bottom:12px}
-.small{font-size:12px;color:#68758a}
-.login{position:fixed;inset:0;background:#101827;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
-.loginbox{background:white;padding:25px;border-radius:12px;width:100%;max-width:380px}
-.loginbox h1{text-align:center;color:#1765d1}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.actions button{margin-bottom:5px}
-#video{width:100%;max-width:500px;background:#111;border-radius:8px}
-.receipt{font-family:monospace;white-space:pre-wrap;border:1px dashed #aaa;padding:12px;background:white}
-@media print{header,nav,.no-print{display:none!important}body{background:white}main{padding:0}}
-</style>
+<title>ASTINTECH POS - Full Hospitality ERP</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>.sidebar-active{background:#1e40af;color:#fff!important}</style>
 </head>
-<body>
-
-<div class="login" id="login">
-<div class="loginbox">
-<h1>ASTINTECH POS</h1>
-<p style="text-align:center">Professional Business Management</p>
-<label>Username</label>
-<input id="username" value="superadmin">
-<label>Password</label>
-<input id="password" type="password" placeholder="Enter password">
-<button style="width:100%" onclick="login()">LOGIN</button>
-<p id="loginError" style="color:red"></p>
-<p class="small">Demo login: superadmin / Astintech@2026</p>
+<body class="bg-gray-100">
+<!-- LOGIN -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-blue-900 p-4">
+<div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+<div class="text-center mb-6"><h1 class="text-3xl font-black"><i class="fas fa-hotel text-blue-700"></i> ASTINTECH</h1><p class="font-bold text-blue-800">Hospitality ERP - All Departments</p></div>
+<input id="username" class="w-full p-3 border rounded-lg mb-3" placeholder="Username" value="superadmin">
+<input id="password" type="password" class="w-full p-3 border rounded-lg mb-3" placeholder="Password" value="Astintech@2026">
+<button onclick="login()" class="w-full bg-blue-800 text-white p-3 rounded-lg font-bold">LOGIN</button>
+<div class="mt-4 bg-slate-50 p-3 rounded text-xs leading-5">
+<b>Default:</b><br>superadmin / Astintech@2026 (Super Admin)<br>admin / admin123<br>security / sec123<br>reception / rec123<br>kitchen / kit123<br>counter / cou123<br>events / eve123<br>manager / man123<br>staff / staff123
+</div>
+<p class="text-xs text-center mt-3 text-gray-400" id="supabaseStatus">Local Mode - Ready</p>
 </div>
 </div>
-
-<header>
-<div>
-<h2>ASTINTECH POS</h2>
-<small>Powered by Astintech</small>
+<!-- APP -->
+<div id="mainApp" class="hidden min-h-screen flex">
+<div class="w-64 bg-slate-900 text-white flex flex-col fixed h-full overflow-y-auto">
+<div class="p-4 border-b border-slate-700"><h2 class="font-bold"><i class="fas fa-hotel"></i> ASTINTECH POS</h2><p id="userRoleDisplay" class="text-xs text-slate-400">Super Admin</p><p id="userDeptDisplay" class="text-xs text-slate-400">All</p><p id="businessDisplay" class="text-xs text-blue-300">ASTINTECH HOTEL</p></div>
+<nav class="flex-1 p-2 space-y-1 text-sm" id="sidebarMenu"></nav>
+<div class="p-3 border-t border-slate-700"><button onclick="logout()" class="w-full bg-red-600 p-2 rounded text-sm">Logout</button></div>
 </div>
-<div>
-<span id="network">ONLINE</span>
-<button class="secondary" onclick="logout()">Logout</button>
+<div class="flex-1 ml-64">
+<div class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-20"><h2 id="pageTitle" class="font-bold">Super Admin Dashboard</h2><div class="flex gap-2 items-center"><span id="currentUser" class="text-sm font-bold">superadmin</span><span id="connectionStatus" class="text-xs px-2 py-1 bg-green-100 rounded">Local</span></div></div>
+<div class="p-4">
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+<div class="bg-white p-3 rounded-xl shadow"><p class="text-xs">Revenue</p><h3 class="text-xl font-bold" id="statRevenue">KES 0</h3></div>
+<div class="bg-white p-3 rounded-xl shadow"><p class="text-xs">Guests CheckedIn</p><h3 class="text-xl font-bold" id="statGuests">0</h3></div>
+<div class="bg-white p-3 rounded-xl shadow"><p class="text-xs">Rooms Occupied</p><h3 class="text-xl font-bold" id="statRooms">0/0</h3></div>
+<div class="bg-white p-3 rounded-xl shadow"><p class="text-xs">Security Today</p><h3 class="text-xl font-bold" id="statSecurity">0</h3></div>
 </div>
-</header>
-
-<nav class="no-print">
-<button onclick="show('dashboard')">Dashboard</button>
-<button onclick="show('business')">Business Setup</button>
-<button onclick="show('products')">Products</button>
-<button onclick="show('sales')">Sales / POS</button>
-<button onclick="show('scanner')">QR Scanner</button>
-<button onclick="show('users')">Users & Roles</button>
-<button onclick="show('security')">Security</button>
-<button onclick="show('sync')">Sync & Offline</button>
-<button onclick="show('expenses')">Expenses</button>
-<button onclick="show('reports')">Reports</button>
-<button onclick="show('backup')">Backup</button>
-</nav>
-
-<main>
-
-<section id="dashboard" class="active">
-<h2>Business Dashboard</h2>
-<div class="grid">
-<div class="card">Products<div class="metric" id="totalProducts">0</div></div>
-<div class="card">Stock Units<div class="metric" id="totalStock">0</div></div>
-<div class="card">Today's Sales<div class="metric" id="todaySales">0</div></div>
-<div class="card">Transactions<div class="metric" id="totalSales">0</div></div>
-</div>
-<div class="card">
-<h3>Recent Sales</h3>
-<div class="tablebox">
-<table>
-<thead><tr><th>Receipt</th><th>Product</th><th>Quantity</th><th>Total</th></tr></thead>
-<tbody id="recent"></tbody>
-</table>
+<div class="grid md:grid-cols-3 gap-3 mb-4" id="departmentsGrid"></div>
+<div class="grid md:grid-cols-2 gap-3">
+<div class="bg-white p-3 rounded-xl shadow"><h4 class="font-bold mb-2 text-sm">Sales Today</h4><div id="dashboardSales" class="text-xs max-h-40 overflow-y-auto"></div></div>
+<div class="bg-white p-3 rounded-xl shadow"><h4 class="font-bold mb-2 text-sm">Audit Log</h4><div id="auditLog" class="text-xs max-h-40 overflow-y-auto"></div></div>
 </div>
 </div>
-<div class="card">
-<h3>Low Stock Alerts</h3>
-<div id="alerts">No alerts</div>
+<!-- SECURITY -->
+<div id="page-security" class="page hidden">
+<div class="flex justify-between mb-3"><h3 class="font-bold"><i class="fas fa-shield-alt"></i> Security & Gate</h3><button onclick="openModal('securityModal')" class="bg-blue-700 text-white px-3 py-2 rounded text-xs">+ Gate Entry</button></div>
+<div class="grid grid-cols-3 gap-3 mb-3">
+<div class="bg-white p-3 rounded shadow text-center"><p class="text-xs">Vehicles Inside</p><h3 class="font-bold" id="vehiclesInside">0</h3></div>
+<div class="bg-white p-3 rounded shadow text-center"><p class="text-xs">Visitors Today</p><h3 class="font-bold" id="visitorsToday">0</h3></div>
+<div class="bg-white p-3 rounded shadow text-center"><p class="text-xs">Incidents</p><h3 class="font-bold" id="incidentsCount">0</h3></div>
 </div>
-</section>
-
-<section id="business">
-<div class="card">
-<h2>Business Setup</h2>
-<label>Business Name</label>
-<input id="bname" placeholder="Enter business name">
-<label>Business Type</label>
-<select id="btype">
-<option>Shop</option><option>Restaurant</option><option>Bar</option><option>General</option>
-</select>
-<label>Business Phone</label>
-<input id="bphone" placeholder="Business phone">
-<label>Business Location</label>
-<input id="blocation" placeholder="Business location">
-<button onclick="saveBusiness()">SAVE BUSINESS</button>
+<div class="bg-white rounded shadow overflow-auto"><table class="w-full text-xs"><thead class="bg-gray-50"><tr><th class="p-2 text-left">Time</th><th>Type</th><th>Guest & Phone</th><th>Vehicle No</th><th>Photo</th><th>Notes</th><th>Status</th><th>Action</th></tr></thead><tbody id="securityTable"></tbody></table></div>
 </div>
-</section>
-
-<section id="products">
-<div class="card">
-<h2>Add Product</h2>
-<input type="hidden" id="editId">
-<label>Product Name</label>
-<input id="pname" placeholder="Product name">
-<label>Barcode / SKU</label>
-<input id="barcode" placeholder="Barcode">
-<label>Buying Cost</label>
-<input id="cost" type="number" min="0" placeholder="Buying cost">
-<label>Selling Price</label>
-<input id="price" type="number" min="0" placeholder="Selling price">
-<label>Quantity</label>
-<input id="qty" type="number" min="0" placeholder="Stock quantity">
-<label>Low Stock Alert</label>
-<input id="low" type="number" min="0" value="5">
-<button onclick="saveProduct()">SAVE PRODUCT</button>
-<button class="secondary" onclick="clearProduct()">CLEAR</button>
+<!-- ACCOMMODATION -->
+<div id="page-accommodation" class="page hidden">
+<div class="flex justify-between mb-3"><h3 class="font-bold"><i class="fas fa-bed"></i> Accommodation</h3><div class="flex gap-2"><button onclick="openModal('roomModal')" class="bg-green-600 text-white px-3 py-1 rounded text-xs">+ Room</button><button onclick="openModal('bookingModal')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">+ Booking</button><button onclick="openModal('housekeepingModal')" class="bg-yellow-600 text-white px-3 py-1 rounded text-xs">+ Housekeeping</button></div></div>
+<div class="bg-white p-3 rounded shadow mb-3"><div id="roomsGrid" class="grid grid-cols-4 md:grid-cols-8 gap-2"></div></div>
+<div class="bg-white rounded shadow overflow-auto mb-3"><table class="w-full text-xs"><thead class="bg-gray-50"><tr><th>Guest & Phone</th><th>Room</th><th>CheckIn</th><th>CheckOut</th><th>Bill</th><th>Paid</th><th>Balance</th><th>Status</th><th>Action</th></tr></thead><tbody id="bookingTable"></tbody></table></div>
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs">Housekeeping</h4><div id="housekeepingTable" class="text-xs"></div></div>
 </div>
-<div class="card">
-<h3>Product Inventory</h3>
-<div class="tablebox">
-<table>
-<thead><tr><th>Name</th><th>Barcode</th><th>Cost</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead>
-<tbody id="productRows"></tbody>
-</table>
+<!-- KITCHEN -->
+<div id="page-kitchen" class="page hidden">
+<div class="flex justify-between mb-3"><h3 class="font-bold"><i class="fas fa-utensils"></i> Kitchen</h3><div class="flex gap-2"><button onclick="openModal('kitchenOrderModal')" class="bg-orange-600 text-white px-3 py-1 rounded text-xs">+ Order</button><button onclick="openModal('stockModal')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">+ Stock</button><button onclick="openModal('kitchenExpenseModal')" class="bg-red-600 text-white px-3 py-1 rounded text-xs">+ Expense</button></div></div>
+<div class="grid grid-cols-4 gap-3 mb-3">
+<div class="bg-yellow-100 p-3 rounded text-center"><p class="text-xs">Pending</p><h3 class="font-bold" id="kitchenPending">0</h3></div>
+<div class="bg-blue-100 p-3 rounded text-center"><p class="text-xs">Cooking</p><h3 class="font-bold" id="kitchenCooking">0</h3></div>
+<div class="bg-green-100 p-3 rounded text-center"><p class="text-xs">Ready</p><h3 class="font-bold" id="kitchenReady">0</h3></div>
+<div class="bg-red-100 p-3 rounded text-center"><p class="text-xs">Stock Low & Exp</p><h3 class="font-bold" id="stockLow">0 / KES <span id="kitchenExpensesTotal">0</span></h3></div>
+</div>
+<div class="grid md:grid-cols-3 gap-3">
+<div class="bg-white rounded shadow p-2"><table class="w-full text-xs"><thead><tr><th>Order</th><th>From</th><th>Items</th><th>Status</th><th>Action</th></tr></thead><tbody id="kitchenTable"></tbody></table></div>
+<div class="bg-white rounded shadow p-2"><table class="w-full text-xs"><thead><tr><th>Item</th><th>Qty</th><th>Status</th></tr></thead><tbody id="stockTable"></tbody></table></div>
+<div class="bg-white rounded shadow p-2"><div id="kitchenExpensesList" class="text-xs"></div></div>
 </div>
 </div>
-</section>
-
-<section id="sales">
-<div class="card">
-<h2>Sales / Point of Sale</h2>
-<label>Select Product</label>
-<select id="saleProduct" onchange="updateTotal()"></select>
-<label>Quantity</label>
-<input id="saleQty" type="number" min="1" value="1" oninput="updateTotal()">
-<label>Selling Price</label>
-<input id="salePrice" type="number" min="0" oninput="updateTotal()">
-<label>Customer Name</label>
-<input id="customer" placeholder="Walk-in customer">
-<label>Payment Method</label>
-<select id="payment">
-<option>Cash</option><option>M-Pesa</option><option>Card</option><option>Credit</option>
-</select>
-<h3 id="saleTotal">Total: KSh 0</h3>
-<button onclick="recordSale()">RECORD SALE + RECEIPT</button>
+<!-- COUNTER -->
+<div id="page-counter" class="page hidden">
+<div class="flex justify-between mb-3"><h3 class="font-bold"><i class="fas fa-cash-register"></i> Counter & Restaurant POS</h3><button onclick="openModal('posSaleModal')" class="bg-green-600 text-white px-3 py-1 rounded text-xs">+ Add to Cart</button></div>
+<div class="grid md:grid-cols-3 gap-3 mb-3">
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Products</h4><div id="posProducts" class="grid grid-cols-2 gap-2"></div><div class="mt-3"><input id="newProdName" placeholder="New Product" class="w-full p-1 border rounded text-xs mb-1"><input id="newProdPrice" type="number" placeholder="Price" class="w-full p-1 border rounded text-xs mb-1"><button onclick="addProduct()" class="w-full bg-slate-800 text-white p-1 rounded text-xs">Add Product</button></div></div>
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Cart</h4><div id="posCart" class="text-xs"></div><div class="border-t pt-2"><p class="font-bold text-sm">Total: <span id="posTotal">KES 0</span> Tax <span id="posTax">0</span>% = <span id="posGrand">KES 0</span></p><div class="grid grid-cols-3 gap-1 mt-2"><button onclick="payPOS('Cash')" class="bg-green-600 text-white p-2 rounded text-xs">Cash</button><button onclick="payPOS('M-Pesa')" class="bg-green-800 text-white p-2 rounded text-xs">M-Pesa</button><button onclick="payPOS('Card')" class="bg-blue-600 text-white p-2 rounded text-xs">Card</button></div></div></div>
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Today</h4><p class="text-xs">Total: KES <span id="todaySales">0</span></p><p class="text-xs">Cash: <span id="todayCash">0</span> M-Pesa: <span id="todayMpesa">0</span> Card: <span id="todayCard">0</span></p><button onclick="printLastReceipt()" class="mt-2 w-full bg-blue-600 text-white p-1 rounded text-xs">Print Last</button></div>
 </div>
-<div class="card">
-<h3>Receipt</h3>
-<div class="receipt" id="receipt">No receipt yet.</div>
-<div class="actions">
-<button onclick="printReceipt()">PRINT RECEIPT</button>
-<button class="secondary" onclick="downloadReceipt()">DOWNLOAD</button>
+<div class="bg-white rounded shadow overflow-auto"><table class="w-full text-xs"><thead class="bg-gray-50"><tr><th>Receipt</th><th>Items</th><th>Total</th><th>Tax</th><th>Method</th><th>Cashier</th><th>Time</th><th>Print</th></tr></thead><tbody id="salesTable"></tbody></table></div>
+</div>
+<!-- EVENTS -->
+<div id="page-events" class="page hidden">
+<div class="flex justify-between mb-3"><h3 class="font-bold"><i class="fas fa-calendar"></i> Events</h3><div class="flex gap-2"><button onclick="openModal('eventModal')" class="bg-purple-600 text-white px-3 py-1 rounded text-xs">+ Event</button><button onclick="openModal('eventExpenseModal')" class="bg-red-600 text-white px-3 py-1 rounded text-xs">+ Expense</button></div></div>
+<div class="bg-white rounded shadow overflow-auto mb-3"><table class="w-full text-xs"><thead class="bg-gray-50"><tr><th>Event</th><th>Customer & Phone</th><th>Date</th><th>Package</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Action</th></tr></thead><tbody id="eventsTable"></tbody></table></div>
+<div class="bg-white p-3 rounded shadow"><div id="eventExpensesList" class="text-xs"></div></div>
+</div>
+<!-- SETTINGS -->
+<div id="page-settings" class="page hidden">
+<h3 class="font-bold mb-3"><i class="fas fa-cog"></i> Settings & Admin - Super Admin</h3>
+<div class="grid md:grid-cols-2 gap-3">
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Business Profile</h4><input id="businessName" placeholder="Business Name" class="w-full p-2 border rounded mb-2 text-sm"><input id="businessPhone" placeholder="Phone" class="w-full p-2 border rounded mb-2 text-sm"><input id="businessEmail" placeholder="Email" class="w-full p-2 border rounded mb-2 text-sm"><input id="businessAddress" placeholder="Address" class="w-full p-2 border rounded mb-2 text-sm"><button onclick="saveBusiness()" class="bg-blue-700 text-white px-3 py-1 rounded text-xs">Save</button></div>
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Users & Roles</h4><div id="usersList" class="space-y-1 max-h-60 overflow-y-auto"></div><button onclick="openModal('userModal')" class="bg-green-600 text-white px-3 py-1 rounded text-xs mt-2">+ Add User</button></div>
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Departments</h4><div id="deptSettings" class="text-xs"></div></div>
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Payment, Tax, Receipt</h4><input id="taxRate" type="number" placeholder="Tax % 16" class="w-full p-2 border rounded mb-2 text-sm"><input id="currency" value="KES" class="w-full p-2 border rounded mb-2 text-sm"><input id="receiptFooter" placeholder="Receipt Footer" class="w-full p-2 border rounded mb-2 text-sm"><button onclick="savePaymentSettings()" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">Save</button></div>
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Supabase & Cloud & Backup</h4><input id="supabaseUrl" placeholder="https://xxxxx.supabase.co" class="w-full p-2 border rounded mb-2 text-sm"><input id="supabaseKey" placeholder="Anon Key" class="w-full p-2 border rounded mb-2 text-sm"><div class="flex gap-2"><button onclick="saveSupabaseConfig()" class="bg-indigo-700 text-white px-3 py-1 rounded text-xs">Connect</button><button onclick="testSupabase()" class="bg-slate-700 text-white px-3 py-1 rounded text-xs">Test</button></div><div class="flex gap-2 mt-3"><button onclick="backupData()" class="bg-yellow-600 text-white px-3 py-1 rounded text-xs">Backup</button><button onclick="document.getElementById('restoreFile').click()" class="bg-gray-600 text-white px-3 py-1 rounded text-xs">Restore</button><button onclick="syncAllToSupabase()" class="bg-green-600 text-white px-3 py-1 rounded text-xs">Sync Cloud</button></div><input type="file" id="restoreFile" hidden onchange="restoreData(event)"></div>
+<div class="bg-white p-3 rounded shadow"><h4 class="font-bold text-xs mb-2">Audit & Monitoring</h4><div class="flex gap-2 mb-2"><button onclick="clearAudit()" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Clear Audit</button><button onclick="exportAudit()" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Export</button><button onclick="clearAllData()" class="bg-red-800 text-white px-2 py-1 rounded text-xs">Clear ALL</button></div><div id="systemMonitoring" class="text-xs"><p>Users: <span id="monitorUsers">0</span> | Sales: <span id="monitorSales">0</span> | Security: <span id="monitorSecurity">0</span></p><p>Last: <span id="monitorLast">-</span></p></div></div>
 </div>
 </div>
-</section>
-
-<section id="scanner">
-<div class="card">
-<h2>QR / Barcode Scanner</h2>
-<p class="small">Camera access requires browser permission and HTTPS or localhost. BarcodeDetector support varies by browser.</p>
-<button onclick="startScanner()">START CAMERA</button>
-<button class="secondary" onclick="stopScanner()">STOP CAMERA</button>
-<br><br>
-<video id="video" playsinline></video>
-<p id="scanResult">Scanner stopped.</p>
-<label>Manual Barcode Entry</label>
-<input id="manualCode" placeholder="Enter barcode">
-<button onclick="findBarcode()">SEARCH PRODUCT</button>
 </div>
-</section>
-
-<section id="users">
-<div class="card">
-<h2>Create User</h2>
-<label>Full Name</label>
-<input id="newName">
-<label>Username</label>
-<input id="newUsername">
-<label>Password</label>
-<input id="newPassword" type="password">
-<label>PIN</label>
-<input id="newPin" maxlength="4" inputmode="numeric">
-<label>Role</label>
-<select id="newRole">
-<option>Admin</option><option>Manager</option><option>Staff</option>
-</select>
-<button onclick="createUser()">CREATE USER</button>
 </div>
-<div class="card">
-<h3>System Users</h3>
-<div id="userRows"></div>
 </div>
-</section>
-
-<section id="security">
-<div class="card">
-<h2>Security Settings</h2>
-<div class="notice">Biometric enrollment is not implemented in this standalone edition. Device/browser authentication integration is required.</div>
-<label>New Password</label>
-<input id="changePassword" type="password">
-<label>New 4-digit PIN</label>
-<input id="changePin" maxlength="4" inputmode="numeric">
-<label><input type="checkbox" id="autoPrint" style="width:auto"> Enable automatic print prompt</label>
-<button onclick="saveSecurity()">SAVE SECURITY SETTINGS</button>
-</div>
-</section>
-
-<section id="sync">
-<div class="card">
-<h2>Sync & Offline</h2>
-<h3 id="connection">Checking connection...</h3>
-<p id="syncInfo">Local storage status.</p>
-<button onclick="checkNetwork()">CHECK CONNECTION</button>
-<div class="notice">This standalone file does not have a cloud server. Internet availability does not automatically synchronize records to other devices.</div>
-</div>
-</section>
-
-<section id="expenses">
-<div class="card">
-<h2>Record Expense</h2>
-<label>Description</label>
-<input id="expenseName">
-<label>Category</label>
-<select id="expenseCategory">
-<option>Supplies</option><option>Transport</option><option>Rent</option><option>Utilities</option><option>Other</option>
-</select>
-<label>Amount</label>
-<input id="expenseAmount" type="number" min="0">
-<button onclick="addExpense()">RECORD EXPENSE</button>
-</div>
-<div class="card">
-<h3>Expenses</h3>
-<div id="expenseRows"></div>
-</div>
-</section>
-
-<section id="reports">
-<div class="card">
-<h2>Business Reports</h2>
-<p id="reportSales"></p>
-<p id="reportExpenses"></p>
-<p id="profit"></p>
-<button onclick="exportCSV()">DOWNLOAD SALES CSV</button>
-</div>
-</section>
-
-<section id="backup">
-<div class="card">
-<h2>Backup & Restore</h2>
-<button onclick="backup()">DOWNLOAD BACKUP JSON</button>
-<br><br>
-<label>Restore Backup</label>
-<input type="file" id="restoreFile" accept=".json,application/json">
-<button onclick="restore()">RESTORE DATA</button>
-<p class="small">Keep backups secure. Restoring replaces the current local database.</p>
-</div>
-</section>
-
-</main>
+<!-- MODALS - same as previous full version -->
+<div id="securityModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-md"><h3 class="font-bold mb-2">Gate Entry</h3><select id="secType" class="w-full p-2 border rounded mb-2 text-sm"><option>Vehicle Entry</option><option>Vehicle Exit</option><option>Visitor Entry</option><option>Visitor Exit</option><option>Security Incident</option></select><input id="secName" placeholder="Name" class="w-full p-2 border rounded mb-2 text-sm"><input id="secPhone" placeholder="Phone" class="w-full p-2 border rounded mb-2 text-sm"><input id="secVehicle" placeholder="Vehicle No" class="w-full p-2 border rounded mb-2 text-sm"><input id="secIdNo" placeholder="ID No" class="w-full p-2 border rounded mb-2 text-sm"><input id="secPhoto" type="file" accept="image/*" class="w-full p-2 border rounded mb-2 text-sm"><textarea id="secNotes" placeholder="Notes" class="w-full p-2 border rounded mb-2 text-sm"></textarea><div class="flex gap-2"><button onclick="saveSecurity()" class="flex-1 bg-blue-700 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('securityModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="userModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-md"><h3 class="font-bold mb-2">Add User</h3><input id="newUsername" placeholder="Username" class="w-full p-2 border rounded mb-2 text-sm"><input id="newPassword" placeholder="Password" class="w-full p-2 border rounded mb-2 text-sm"><select id="newRole" class="w-full p-2 border rounded mb-2 text-sm"><option>Super Admin</option><option>Admin</option><option>Manager</option><option>Staff</option><option>Reception</option><option>Security</option><option>Kitchen Staff</option><option>Counter/Cashier</option><option>Event Manager</option></select><select id="newDept" class="w-full p-2 border rounded mb-2 text-sm"><option>All</option><option>Security & Gate</option><option>Accommodation</option><option>Kitchen</option><option>Counter & Restaurant</option><option>Events</option><option>Settings & Administration</option></select><div class="flex gap-2"><button onclick="saveUser()" class="flex-1 bg-green-600 text-white p-2 rounded text-sm">Create</button><button onclick="closeModal('userModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="roomModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-sm"><h3 class="font-bold mb-2">Room</h3><input id="roomId" type="number" placeholder="Room No" class="w-full p-2 border rounded mb-2 text-sm"><select id="roomType" class="w-full p-2 border rounded mb-2 text-sm"><option>Single</option><option>Double</option><option>Deluxe</option><option>Suite</option><option>Family</option></select><select id="roomStatus" class="w-full p-2 border rounded mb-2 text-sm"><option>Available</option><option>Occupied</option><option>Dirty</option><option>Maintenance</option><option>Reserved</option></select><input id="roomPrice" type="number" placeholder="Price" class="w-full p-2 border rounded mb-2 text-sm"><div class="flex gap-2"><button onclick="saveRoom()" class="flex-1 bg-green-600 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('roomModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="bookingModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-md"><h3 class="font-bold mb-2">Booking</h3><input id="bookGuest" placeholder="Guest Name" class="w-full p-2 border rounded mb-2 text-sm"><input id="bookPhone" placeholder="Phone" class="w-full p-2 border rounded mb-2 text-sm"><input id="bookRoom" placeholder="Room No" class="w-full p-2 border rounded mb-2 text-sm"><input id="bookCheckin" type="date" class="w-full p-2 border rounded mb-2 text-sm"><input id="bookCheckout" type="date" class="w-full p-2 border rounded mb-2 text-sm"><input id="bookBill" type="number" placeholder="Bill" class="w-full p-2 border rounded mb-2 text-sm"><input id="bookPaid" type="number" placeholder="Paid" class="w-full p-2 border rounded mb-2 text-sm"><select id="bookStatus" class="w-full p-2 border rounded mb-2 text-sm"><option>Reserved</option><option>CheckedIn</option><option>CheckedOut</option><option>Cancelled</option></select><div class="flex gap-2"><button onclick="saveBooking()" class="flex-1 bg-blue-600 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('bookingModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="housekeepingModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-sm"><h3 class="font-bold mb-2">Housekeeping</h3><input id="hkRoom" placeholder="Room No" class="w-full p-2 border rounded mb-2 text-sm"><select id="hkTask" class="w-full p-2 border rounded mb-2 text-sm"><option>Cleaning</option><option>Laundry</option><option>Maintenance</option></select><input id="hkStaff" placeholder="Staff" class="w-full p-2 border rounded mb-2 text-sm"><select id="hkStatus" class="w-full p-2 border rounded mb-2 text-sm"><option>Pending</option><option>Done</option></select><div class="flex gap-2"><button onclick="saveHousekeeping()" class="flex-1 bg-yellow-600 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('housekeepingModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="kitchenOrderModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-sm"><h3 class="font-bold mb-2">Kitchen Order</h3><input id="kOrderId" placeholder="Order ID" class="w-full p-2 border rounded mb-2 text-sm"><select id="kFrom" class="w-full p-2 border rounded mb-2 text-sm"><option>Restaurant</option><option>Accommodation</option><option>Events</option><option>Counter</option></select><input id="kItems" placeholder="Items" class="w-full p-2 border rounded mb-2 text-sm"><select id="kStatus" class="w-full p-2 border rounded mb-2 text-sm"><option>Pending</option><option>Cooking</option><option>Ready</option><option>Done</option></select><div class="flex gap-2"><button onclick="saveKitchenOrder()" class="flex-1 bg-orange-600 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('kitchenOrderModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="stockModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-sm"><h3 class="font-bold mb-2">Stock</h3><input id="stockName" placeholder="Item" class="w-full p-2 border rounded mb-2 text-sm"><input id="stockQty" type="number" placeholder="Qty" class="w-full p-2 border rounded mb-2 text-sm"><input id="stockUnit" placeholder="Unit" class="w-full p-2 border rounded mb-2 text-sm"><div class="flex gap-2"><button onclick="saveStock()" class="flex-1 bg-blue-600 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('stockModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="kitchenExpenseModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-sm"><h3 class="font-bold mb-2">Kitchen Expense</h3><input id="kExpName" placeholder="Expense" class="w-full p-2 border rounded mb-2 text-sm"><input id="kExpAmount" type="number" placeholder="Amount" class="w-full p-2 border rounded mb-2 text-sm"><div class="flex gap-2"><button onclick="saveKitchenExpense()" class="flex-1 bg-red-600 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('kitchenExpenseModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="posSaleModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-sm"><h3 class="font-bold mb-2">Add to Cart</h3><input id="posProdName" placeholder="Product" class="w-full p-2 border rounded mb-2 text-sm"><input id="posProdPrice" type="number" placeholder="Price" class="w-full p-2 border rounded mb-2 text-sm"><input id="posProdQty" type="number" value="1" class="w-full p-2 border rounded mb-2 text-sm"><div class="flex gap-2"><button onclick="addToCart()" class="flex-1 bg-blue-600 text-white p-2 rounded text-sm">Add</button><button onclick="closeModal('posSaleModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Close</button></div></div></div>
+<div id="eventModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-md"><h3 class="font-bold mb-2">Event Booking</h3><input id="evName" placeholder="Event Name" class="w-full p-2 border rounded mb-2 text-sm"><input id="evCustomer" placeholder="Customer" class="w-full p-2 border rounded mb-2 text-sm"><input id="evPhone" placeholder="Phone" class="w-full p-2 border rounded mb-2 text-sm"><input id="evDate" type="date" class="w-full p-2 border rounded mb-2 text-sm"><select id="evPackage" class="w-full p-2 border rounded mb-2 text-sm"><option>Basic - KES 20000</option><option>Standard - KES 50000</option><option>Premium - KES 100000</option><option>Custom</option></select><input id="evTotal" type="number" placeholder="Total" class="w-full p-2 border rounded mb-2 text-sm"><input id="evPaid" type="number" placeholder="Paid" class="w-full p-2 border rounded mb-2 text-sm"><select id="evStatus" class="w-full p-2 border rounded mb-2 text-sm"><option>Booked</option><option>Confirmed</option><option>Done</option><option>Cancelled</option></select><div class="flex gap-2"><button onclick="saveEvent()" class="flex-1 bg-purple-600 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('eventModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
+<div id="eventExpenseModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl p-4 w-full max-w-sm"><h3 class="font-bold mb-2">Event Expense</h3><input id="evExpName" placeholder="Expense" class="w-full p-2 border rounded mb-2 text-sm"><input id="evExpAmount" type="number" placeholder="Amount" class="w-full p-2 border rounded mb-2 text-sm"><div class="flex gap-2"><button onclick="saveEventExpense()" class="flex-1 bg-red-600 text-white p-2 rounded text-sm">Save</button><button onclick="closeModal('eventExpenseModal')" class="flex-1 bg-gray-300 p-2 rounded text-sm">Cancel</button></div></div></div>
 
 <script>
-const KEY="ASTINTECH_POS_V7";
-const defaults=()=>({
-business:{name:"Astintech POS",type:"General",phone:"",location:""},
-products:[],
-sales:[],
-users:[{name:"Super Admin",username:"superadmin",password:"Astintech@2026",pin:"2026",role:"Super Admin"}],
-expenses:[],
-settings:{autoPrint:false}
-});
-let db;
-try{db=JSON.parse(localStorage.getItem(KEY))||defaults()}catch(e){db=defaults()}
-let receiptText="";
-let stream=null;
-let scanTimer=null;
-let currentUser=null;
-
-function save(){
-localStorage.setItem(KEY,JSON.stringify(db));
-render();
-}
-
-function money(n){
-return "KSh "+Number(n||0).toLocaleString("en-KE",{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-
-function show(id){
-document.querySelectorAll("main section").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-render();
-}
-
-function login(){
-let u=document.getElementById("username").value.trim();
-let p=document.getElementById("password").value;
-let found=db.users.find(x=>x.username===u&&x.password===p);
-if(!found){
-document.getElementById("loginError").textContent="Incorrect username or password";
-return;
-}
-currentUser=found;
-document.getElementById("login").style.display="none";
-render();
-}
-
-function logout(){
-stopScanner();
-currentUser=null;
-document.getElementById("login").style.display="flex";
-}
-
-function saveBusiness(){
-db.business.name=document.getElementById("bname").value;
-db.business.type=document.getElementById("btype").value;
-db.business.phone=document.getElementById("bphone").value;
-db.business.location=document.getElementById("blocation").value;
-save();
-alert("Business details saved");
-}
-
-function clearProduct(){
-["editId","pname","barcode","cost","price","qty"].forEach(id=>document.getElementById(id).value="");
-document.getElementById("low").value=5;
-}
-
-function saveProduct(){
-let name=document.getElementById("pname").value.trim();
-if(!name)return alert("Enter product name");
-let id=document.getElementById("editId").value;
-let p={
-id:id||String(Date.now()),
-name,
-barcode:document.getElementById("barcode").value.trim(),
-cost:Number(document.getElementById("cost").value),
-price:Number(document.getElementById("price").value),
-qty:Number(document.getElementById("qty").value),
-low:Number(document.getElementById("low").value)
+// FULL LOGIC - same as 60KB file - minified for GitHub Pages
+let supabaseClient=null,currentUser=null;
+let DB={
+users:JSON.parse(localStorage.getItem('ast_users')||'[{"username":"superadmin","password":"Astintech@2026","role":"Super Admin","dept":"All"},{"username":"admin","password":"admin123","role":"Admin","dept":"All"},{"username":"manager","password":"man123","role":"Manager","dept":"All"},{"username":"staff","password":"staff123","role":"Staff","dept":"All"},{"username":"security","password":"sec123","role":"Security","dept":"Security & Gate"},{"username":"reception","password":"rec123","role":"Reception","dept":"Accommodation"},{"username":"kitchen","password":"kit123","role":"Kitchen Staff","dept":"Kitchen"},{"username":"counter","password":"cou123","role":"Counter/Cashier","dept":"Counter & Restaurant"},{"username":"events","password":"eve123","role":"Event Manager","dept":"Events"}]'),
+security:JSON.parse(localStorage.getItem('ast_security')||'[]'),
+rooms:JSON.parse(localStorage.getItem('ast_rooms')||'[{"id":101,"type":"Single","status":"Available","price":2500},{"id":102,"type":"Double","status":"Available","price":3500},{"id":103,"type":"Deluxe","status":"Occupied","price":5000},{"id":104,"type":"Suite","status":"Available","price":8000}]'),
+bookings:JSON.parse(localStorage.getItem('ast_bookings')||'[]'),
+housekeeping:JSON.parse(localStorage.getItem('ast_hk')||'[]'),
+kitchenOrders:JSON.parse(localStorage.getItem('ast_kitchen')||'[]'),
+stock:JSON.parse(localStorage.getItem('ast_stock')||'[{"name":"Rice","qty":50,"unit":"Kg"},{"name":"Oil","qty":5,"unit":"Litres"}]'),
+kitchenExpenses:JSON.parse(localStorage.getItem('ast_kExp')||'[]'),
+products:JSON.parse(localStorage.getItem('ast_products')||'[{"name":"Soda","price":50},{"name":"Beer","price":250},{"name":"Chips","price":200},{"name":"Chicken","price":500}]'),
+sales:JSON.parse(localStorage.getItem('ast_sales')||'[]'),
+events:JSON.parse(localStorage.getItem('ast_events')||'[]'),
+eventExpenses:JSON.parse(localStorage.getItem('ast_evExp')||'[]'),
+audit:JSON.parse(localStorage.getItem('ast_audit')||'[]'),
+business:JSON.parse(localStorage.getItem('ast_business')||'{"name":"ASTINTECH HOTEL","phone":"0700000000","currency":"KES","tax":16,"receiptFooter":"Thank you!"}'),
+cart:[]
 };
-if(p.cost<0||p.price<0||p.qty<0)return alert("Enter valid values");
-let index=db.products.findIndex(x=>x.id===id);
-if(index>=0)db.products[index]=p;
-else db.products.push(p);
-clearProduct();
-save();
-alert("Product saved");
-}
-
-function editProduct(id){
-let p=db.products.find(x=>x.id===id);
-if(!p)return;
-document.getElementById("editId").value=p.id;
-document.getElementById("pname").value=p.name;
-document.getElementById("barcode").value=p.barcode;
-document.getElementById("cost").value=p.cost;
-document.getElementById("price").value=p.price;
-document.getElementById("qty").value=p.qty;
-document.getElementById("low").value=p.low;
-show("products");
-}
-
-function deleteProduct(id){
-if(!confirm("Delete product?"))return;
-db.products=db.products.filter(x=>x.id!==id);
-save();
-}
-
-function updateTotal(){
-let p=db.products.find(x=>x.id===document.getElementById("saleProduct").value);
-if(p)document.getElementById("salePrice").value=p.price;
-let q=Number(document.getElementById("saleQty").value)||0;
-let price=Number(document.getElementById("salePrice").value)||0;
-document.getElementById("saleTotal").textContent="Total: "+money(q*price);
-}
-
-function recordSale(){
-let id=document.getElementById("saleProduct").value;
-let p=db.products.find(x=>x.id===id);
-let q=Number(document.getElementById("saleQty").value);
-let price=Number(document.getElementById("salePrice").value);
-if(!p)return alert("Select a product");
-if(!Number.isInteger(q)||q<1)return alert("Enter a valid quantity");
-if(q>p.qty)return alert("Insufficient stock");
-if(price<0)return alert("Invalid selling price");
-p.qty-=q;
-let s={
-id:"AT"+Date.now(),
-date:new Date().toISOString(),
-product:p.name,
-productId:p.id,
-qty:q,
-price,
-total:q*price,
-cost:p.cost*q,
-customer:document.getElementById("customer").value||"Walk-in",
-payment:document.getElementById("payment").value
-};
-db.sales.push(s);
-receiptText=
-db.business.name+"\n"+
-(db.business.location||"")+"\n"+
-"--------------------------------\n"+
-"RECEIPT: "+s.id+"\n"+
-"DATE: "+new Date(s.date).toLocaleString()+"\n"+
-"CUSTOMER: "+s.customer+"\n"+
-"--------------------------------\n"+
-s.product+"\n"+
-s.qty+" x "+money(s.price)+"\n"+
-"TOTAL: "+money(s.total)+"\n"+
-"PAYMENT: "+s.payment+"\n"+
-"--------------------------------\n"+
-"THANK YOU!\nPowered by Astintech\nSupport: 0707857245";
-document.getElementById("receipt").textContent=receiptText;
-save();
-document.getElementById("saleQty").value=1;
-document.getElementById("customer").value="";
-render();
-if(db.settings.autoPrint)setTimeout(printReceipt,300);
-alert("Sale recorded successfully");
-}
-
-function printReceipt(){
-if(!receiptText)return alert("No receipt available");
-let w=window.open("","_blank","width=400,height=600");
-if(!w)return alert("Allow pop-ups to print");
-let pre=w.document.createElement("pre");
-pre.textContent=receiptText;
-pre.style.cssText="font:12px monospace;white-space:pre-wrap";
-w.document.body.appendChild(pre);
-w.document.title="Astintech Receipt";
-w.print();
-}
-
-function downloadReceipt(){
-if(!receiptText)return alert("No receipt available");
-downloadFile("Astintech_Receipt.txt",receiptText,"text/plain");
-}
-
-function createUser(){
-let name=document.getElementById("newName").value.trim();
-let username=document.getElementById("newUsername").value.trim();
-let password=document.getElementById("newPassword").value;
-let pin=document.getElementById("newPin").value;
-if(!name||!username||password.length<6||!/^\d{4}$/.test(pin))return alert("Fill all fields. Password needs 6 characters and PIN 4 digits.");
-if(db.users.some(u=>u.username===username))return alert("Username already exists");
-db.users.push({name,username,password,pin,role:document.getElementById("newRole").value});
-save();
-alert("User created");
-}
-
-function saveSecurity(){
-let p=document.getElementById("changePassword").value;
-let pin=document.getElementById("changePin").value;
-if(p&&p.length<8)return alert("Password must have at least 8 characters");
-if(pin&&!/^\d{4}$/.test(pin))return alert("PIN must contain 4 digits");
-let user=db.users.find(x=>x.username===currentUser.username);
-if(p)user.password=p;
-if(pin)user.pin=pin;
-db.settings.autoPrint=document.getElementById("autoPrint").checked;
-save();
-alert("Settings saved");
-}
-
-function addExpense(){
-let name=document.getElementById("expenseName").value.trim();
-let amount=Number(document.getElementById("expenseAmount").value);
-if(!name||amount<=0)return alert("Enter description and valid amount");
-db.expenses.push({name,amount,category:document.getElementById("expenseCategory").value,date:new Date().toISOString()});
-save();
-document.getElementById("expenseName").value="";
-document.getElementById("expenseAmount").value="";
-}
-
-function render(){
-document.getElementById("bname").value=db.business.name||"";
-document.getElementById("btype").value=db.business.type||"General";
-document.getElementById("bphone").value=db.business.phone||"";
-document.getElementById("blocation").value=db.business.location||"";
-document.getElementById("autoPrint").checked=!!db.settings.autoPrint;
-
-document.getElementById("totalProducts").textContent=db.products.length;
-document.getElementById("totalStock").textContent=db.products.reduce((a,p)=>a+p.qty,0);
-let today=new Date().toDateString();
-let todays=db.sales.filter(s=>new Date(s.date).toDateString()===today);
-document.getElementById("todaySales").textContent=money(todays.reduce((a,s)=>a+s.total,0));
-document.getElementById("totalSales").textContent=db.sales.length;
-
-document.getElementById("productRows").innerHTML=db.products.map(p=>
-`<tr><td>${safe(p.name)}</td><td>${safe(p.barcode)}</td><td>${money(p.cost)}</td><td>${money(p.price)}</td><td>${p.qty}</td><td><button onclick="editProduct('${p.id}')">Edit</button> <button class="danger" onclick="deleteProduct('${p.id}')">Delete</button></td></tr>`
-).join("");
-
-document.getElementById("saleProduct").innerHTML='<option value="">Select Product</option>'+db.products.map(p=>`<option value="${p.id}">${safe(p.name)} - ${money(p.price)} (Stock ${p.qty})</option>`).join("");
-
-document.getElementById("recent").innerHTML=db.sales.slice(-8).reverse().map(s=>
-`<tr><td>${safe(s.id)}</td><td>${safe(s.product)}</td><td>${s.qty}</td><td>${money(s.total)}</td></tr>`
-).join("");
-
-let low=db.products.filter(p=>p.qty<=p.low);
-document.getElementById("alerts").innerHTML=low.length?low.map(p=>`<p>${safe(p.name)}: ${p.qty} remaining</p>`).join(""):"No low-stock alerts";
-
-document.getElementById("userRows").innerHTML=db.users.map(u=>`<p>${safe(u.name)} — ${safe(u.username)} — ${safe(u.role)}</p>`).join("");
-
-document.getElementById("expenseRows").innerHTML=db.expenses.map(e=>`<p>${safe(e.date.slice(0,10))} | ${safe(e.name)} | ${money(e.amount)}</p>`).join("");
-
-let sales=db.sales.reduce((a,s)=>a+s.total,0);
-let expenses=db.expenses.reduce((a,e)=>a+e.amount,0);
-let costs=db.sales.reduce((a,s)=>a+(s.cost||0),0);
-document.getElementById("reportSales").textContent="Total Sales: "+money(sales);
-document.getElementById("reportExpenses").textContent="Expenses: "+money(expenses);
-document.getElementById("profit").textContent="Estimated Profit: "+money(sales-costs-expenses);
-
-document.getElementById("network").textContent=navigator.onLine?"ONLINE":"OFFLINE";
-document.getElementById("connection").textContent=navigator.onLine?"ONLINE":"OFFLINE";
-document.getElementById("syncInfo").textContent=db.sales.length+" sales stored locally. Cloud sync server not configured.";
-}
-
-function checkNetwork(){render();alert(navigator.onLine?"Internet connection available. No server is configured.":"You are offline. Local storage remains available.");}
-
-function safe(s){
-return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-
-function downloadFile(name,content,type){
-let blob=new Blob([content],{type});
-let url=URL.createObjectURL(blob);
-let a=document.createElement("a");
-a.href=url;a.download=name;a.click();
-URL.revokeObjectURL(url);
-}
-
-function exportCSV(){
-let rows=[["Receipt","Date","Product","Quantity","Price","Payment","Total"]];
-db.sales.forEach(s=>rows.push([s.id,s.date,s.product,s.qty,s.price,s.payment,s.total]));
-let csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
-downloadFile("Astintech_Sales.csv",csv,"text/csv");
-}
-
-function backup(){
-downloadFile("Astintech_POS_Backup.json",JSON.stringify(db,null,2),"application/json");
-}
-
-function restore(){
-let f=document.getElementById("restoreFile").files[0];
-if(!f)return alert("Select a backup file");
-let reader=new FileReader();
-reader.onload=()=>{
-try{
-let data=JSON.parse(reader.result);
-if(!data.business||!Array.isArray(data.products)||!Array.isArray(data.sales)||!Array.isArray(data.users))throw Error();
-if(!confirm("Replace current data with backup?"))return;
-db=data;save();alert("Backup restored");
-}catch(e){alert("Invalid backup file")}
-};
-reader.readAsText(f);
-}
-
-async function startScanner(){
-if(!("BarcodeDetector" in window))return alert("This browser does not support camera barcode scanning. Use manual entry.");
-try{
-stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-let video=document.getElementById("video");
-video.srcObject=stream;
-await video.play();
-let detector=new BarcodeDetector();
-scanTimer=setInterval(async()=>{
-try{
-let codes=await detector.detect(video);
-if(codes.length){
-let code=codes[0].rawValue;
-document.getElementById("manualCode").value=code;
-findBarcode();
-}
-}catch(e){}
-},700);
-document.getElementById("scanResult").textContent="Camera scanning active";
-}catch(e){alert("Camera permission failed. Use HTTPS and allow camera access.");}
-}
-
-function stopScanner(){
-if(scanTimer)clearInterval(scanTimer);
-scanTimer=null;
-if(stream)stream.getTracks().forEach(t=>t.stop());
-stream=null;
-document.getElementById("video").srcObject=null;
-document.getElementById("scanResult").textContent="Scanner stopped";
-}
-
-function findBarcode(){
-let code=document.getElementById("manualCode").value.trim();
-let p=db.products.find(x=>x.barcode===code);
-if(!p)return alert("Product not found");
-show("sales");
-document.getElementById("saleProduct").value=p.id;
-document.getElementById("salePrice").value=p.price;
-updateTotal();
-alert("Product found: "+p.name);
-}
-
-window.addEventListener("online",render);
-window.addEventListener("offline",render);
-render();
+function saveDB(){localStorage.setItem('ast_users',JSON.stringify(DB.users));localStorage.setItem('ast_security',JSON.stringify(DB.security));localStorage.setItem('ast_rooms',JSON.stringify(DB.rooms));localStorage.setItem('ast_bookings',JSON.stringify(DB.bookings));localStorage.setItem('ast_hk',JSON.stringify(DB.housekeeping));localStorage.setItem('ast_kitchen',JSON.stringify(DB.kitchenOrders));localStorage.setItem('ast_stock',JSON.stringify(DB.stock));localStorage.setItem('ast_kExp',JSON.stringify(DB.kitchenExpenses));localStorage.setItem('ast_products',JSON.stringify(DB.products));localStorage.setItem('ast_sales',JSON.stringify(DB.sales));localStorage.setItem('ast_events',JSON.stringify(DB.events));localStorage.setItem('ast_evExp',JSON.stringify(DB.eventExpenses));localStorage.setItem('ast_audit',JSON.stringify(DB.audit));localStorage.setItem('ast_business',JSON.stringify(DB.business));}
+function logAudit(a){DB.audit.unshift({time:new Date().toLocaleString(),user:currentUser?.username||'system',action:a});if(DB.audit.length>300)DB.audit.pop();saveDB();renderAudit();document.getElementById('monitorLast').innerText=a;}
+function renderAudit(){document.getElementById('auditLog').innerHTML=DB.audit.slice(0,50).map(x=>`<div><b>${x.time}</b> - ${x.user}: ${x.action}</div>`).join('');}
+function login(){const u=document.getElementById('username').value.trim(),p=document.getElementById('password').value.trim();const f=DB.users.find(x=>x.username===u&&x.password===p);if(!f){alert('Wrong');return;}currentUser=f;document.getElementById('loginScreen').classList.add('hidden');document.getElementById('mainApp').classList.remove('hidden');document.getElementById('currentUser').innerText=f.username;document.getElementById('userRoleDisplay').innerText=f.role;document.getElementById('userDeptDisplay').innerText=f.dept;document.getElementById('businessDisplay').innerText=DB.business.name;buildSidebar(f);showPage('dashboard');logAudit('Login '+f.role);initSupabase();loadAll();}
+function buildSidebar(user){const depts=[{id:'dashboard',icon:'fa-tachometer-alt',name:'Super Admin Dashboard',roles:['Super Admin','Admin','Manager']},{id:'security',icon:'fa-shield-alt',name:'Security & Gate',roles:['Super Admin','Admin','Security','Manager']},{id:'accommodation',icon:'fa-bed',name:'Accommodation',roles:['Super Admin','Admin','Reception','Manager']},{id:'kitchen',icon:'fa-utensils',name:'Kitchen',roles:['Super Admin','Admin','Kitchen Staff','Manager']},{id:'counter',icon:'fa-cash-register',name:'Counter & Restaurant',roles:['Super Admin','Admin','Counter/Cashier','Manager']},{id:'events',icon:'fa-calendar',name:'Events',roles:['Super Admin','Admin','Event Manager','Manager']},{id:'settings',icon:'fa-cog',name:'Settings & Admin',roles:['Super Admin','Admin']}];let h='';depts.forEach(d=>{if(user.role==='Super Admin'||d.roles.includes(user.role)||user.dept==='All'||user.dept===d.name){h+=`<button onclick="showPage('${d.id}')" id="menu-${d.id}" class="w-full text-left p-3 rounded flex items-center gap-3 hover:bg-slate-800"><i class="fas ${d.icon} w-5"></i> ${d.name}</button>`;}});document.getElementById('sidebarMenu').innerHTML=h;}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));document.getElementById('page-'+id).classList.remove('hidden');document.querySelectorAll('#sidebarMenu button').forEach(b=>b.classList.remove('sidebar-active'));const m=document.getElementById('menu-'+id);if(m)m.classList.add('sidebar-active');document.getElementById('pageTitle').innerText=m?m.innerText:id;}
+function openModal(id){document.getElementById(id).classList.remove('hidden');}function closeModal(id){document.getElementById(id).classList.add('hidden');}function logout(){location.reload();}
+function loadAll(){renderDeptsCards();renderSecurity();renderRooms();renderBookings();renderHousekeeping();renderKitchen();renderStock();renderKitchenExpenses();renderPOS();renderEvents();renderEventExpenses();renderUsers();renderDeptSettings();renderAudit();document.getElementById('businessName').value=DB.business.name;document.getElementById('businessPhone').value=DB.business.phone;document.getElementById('taxRate').value=DB.business.tax||16;document.getElementById('currency').value=DB.business.currency||'KES';document.getElementById('receiptFooter').value=DB.business.receiptFooter||'';document.getElementById('supabaseUrl').value=localStorage.getItem('supabaseUrl')||'';document.getElementById('supabaseKey').value=localStorage.getItem('supabaseKey')||'';document.getElementById('monitorUsers').innerText=DB.users.length;document.getElementById('monitorSales').innerText=DB.sales.length;document.getElementById('monitorSecurity').innerText=DB.security.length;}
+function renderDeptsCards(){const cards=[{title:'Security & Gate',icon:'fa-shield-alt',color:'bg-red-500',count:DB.security.length+' logs',id:'security'},{title:'Accommodation',icon:'fa-bed',color:'bg-blue-500',count:DB.rooms.filter(r=>r.status==='Available').length+' available',id:'accommodation'},{title:'Kitchen',icon:'fa-utensils',color:'bg-orange-500',count:DB.kitchenOrders.filter(k=>k.status!=='Done').length+' pending',id:'kitchen'},{title:'Counter & Restaurant',icon:'fa-cash-register',color:'bg-green-500',count:DB.sales.length+' sales',id:'counter'},{title:'Events',icon:'fa-calendar',color:'bg-purple-500',count:DB.events.length+' bookings',id:'events'},{title:'Settings',icon:'fa-cog',color:'bg-slate-700',count:DB.users.length+' users',id:'settings'}];document.getElementById('departmentsGrid').innerHTML=cards.map(c=>`<div onclick="showPage('${c.id}')" class="bg-white p-4 rounded-xl shadow cursor-pointer border-l-4 ${c.color.replace('bg-','border-')}"><div class="flex justify-between"><i class="fas ${c.icon} text-xl ${c.color} text-white p-2 rounded"></i><span class="text-xs bg-gray-100 px-2 py-1 rounded h-fit">${c.count}</span></div><h4 class="font-bold mt-3 text-sm">${c.title}</h4></div>`).join('');document.getElementById('statRevenue').innerText=(DB.business.currency||'KES')+' '+DB.sales.reduce((s,x)=>s+x.total,0);document.getElementById('statGuests').innerText=DB.bookings.filter(b=>b.status==='CheckedIn').length;document.getElementById('statRooms').innerText=DB.rooms.filter(r=>r.status==='Occupied').length+'/'+DB.rooms.length;document.getElementById('statSecurity').innerText=DB.security.filter(s=>new Date(s.time).toDateString()===new Date().toDateString()).length;document.getElementById('dashboardSales').innerHTML=DB.sales.slice(0,10).map(s=>`<div>${s.receipt} - ${s.items.slice(0,20)} - KES ${s.total}</div>`).join('');}
+function renderSecurity(){document.getElementById('securityTable').innerHTML=DB.security.map((s,i)=>`<tr class="border-b"><td class="p-2">${s.time}</td><td class="p-2">${s.type}</td><td class="p-2">${s.name}<br><span class="text-xs">${s.phone} ${s.idNo||''}</span></td><td class="p-2 font-bold">${s.vehicle}</td><td class="p-2">${s.photo?'<i class="fas fa-image text-blue-500"></i>':'-'}</td><td class="p-2">${s.notes||''}</td><td class="p-2">${s.status}</td><td class="p-2"><button onclick="checkoutSecurity(${i})" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Out</button></td></tr>`).join('');document.getElementById('vehiclesInside').innerText=DB.security.filter(s=>s.status==='Inside').length;document.getElementById('visitorsToday').innerText=DB.security.filter(s=>new Date(s.time).toDateString()===new Date().toDateString()).length;document.getElementById('incidentsCount').innerText=DB.security.filter(s=>s.type==='Security Incident').length;}
+function saveSecurity(){const e={time:new Date().toLocaleString(),type:document.getElementById('secType').value,name:document.getElementById('secName').value,phone:document.getElementById('secPhone').value,vehicle:document.getElementById('secVehicle').value,idNo:document.getElementById('secIdNo').value,notes:document.getElementById('secNotes').value,photo:document.getElementById('secPhoto').files[0]?.name||'',status:'Inside'};if(!e.name){alert('Weka jina');return;}DB.security.unshift(e);saveDB();renderSecurity();closeModal('securityModal');logAudit(`Security ${e.type} ${e.name}`);if(supabaseClient)syncToSupabase('security_logs',e);}
+function checkoutSecurity(i){DB.security[i].status='Out';saveDB();renderSecurity();logAudit('Checkout '+DB.security[i].name);}
+function renderRooms(){document.getElementById('roomsGrid').innerHTML=DB.rooms.map(r=>`<div class="p-2 rounded text-center text-xs ${r.status==='Available'?'bg-green-100':r.status==='Occupied'?'bg-red-100':'bg-yellow-100'}"><b>${r.id}</b><br>${r.type}<br>${r.status}<br>KES ${r.price}</div>`).join('');}
+function saveRoom(){const id=parseInt(document.getElementById('roomId').value);const type=document.getElementById('roomType').value;const status=document.getElementById('roomStatus').value;const price=parseInt(document.getElementById('roomPrice').value||0);if(!id)return;const idx=DB.rooms.findIndex(r=>r.id===id);if(idx>=0){DB.rooms[idx]={id,type,status,price};}else{DB.rooms.push({id,type,status,price});}saveDB();renderRooms();closeModal('roomModal');logAudit(`Room ${id}`);}
+function renderBookings(){document.getElementById('bookingTable').innerHTML=DB.bookings.map((b,i)=>`<tr class="border-b"><td class="p-2">${b.guest}<br><span class="text-xs">${b.phone}</span></td><td class="p-2">${b.room}</td><td class="p-2">${b.checkin}</td><td class="p-2">${b.checkout}</td><td class="p-2">KES ${b.bill}</td><td class="p-2">KES ${b.paid||0}</td><td class="p-2">KES ${(b.bill-(b.paid||0))}</td><td class="p-2"><select onchange="updateBookingStatus(${i},this.value)" class="text-xs border rounded p-1"><option ${b.status==='Reserved'?'selected':''}>Reserved</option><option ${b.status==='CheckedIn'?'selected':''}>CheckedIn</option><option ${b.status==='CheckedOut'?'selected':''}>CheckedOut</option><option ${b.status==='Cancelled'?'selected':''}>Cancelled</option></select></td><td class="p-2"><button onclick="DB.bookings.splice(${i},1);saveDB();renderBookings()" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Del</button></td></tr>`).join('');}
+function saveBooking(){const b={guest:document.getElementById('bookGuest').value,phone:document.getElementById('bookPhone').value,room:document.getElementById('bookRoom').value,checkin:document.getElementById('bookCheckin').value,checkout:document.getElementById('bookCheckout').value,bill:parseInt(document.getElementById('bookBill').value||0),paid:parseInt(document.getElementById('bookPaid').value||0),status:document.getElementById('bookStatus').value,time:new Date().toLocaleString()};if(!b.guest||!b.room)return;DB.bookings.unshift(b);saveDB();renderBookings();closeModal('bookingModal');logAudit(`Booking ${b.guest}`);if(supabaseClient)syncToSupabase('bookings',b);}
+function updateBookingStatus(i,v){DB.bookings[i].status=v;saveDB();renderBookings();}
+function renderHousekeeping(){document.getElementById('housekeepingTable').innerHTML=DB.housekeeping.map((h,i)=>`<div class="flex justify-between border-b py-1"><span>Room ${h.room} - ${h.task} - ${h.staff} - ${h.status}</span><button onclick="DB.housekeeping.splice(${i},1);saveDB();renderHousekeeping()" class="text-red-500 text-xs">Del</button></div>`).join('')||'No tasks';}
+function saveHousekeeping(){const h={room:document.getElementById('hkRoom').value,task:document.getElementById('hkTask').value,staff:document.getElementById('hkStaff').value,status:document.getElementById('hkStatus').value,time:new Date().toLocaleString()};DB.housekeeping.unshift(h);saveDB();renderHousekeeping();closeModal('housekeepingModal');logAudit(`HK Room ${h.room}`);}
+function renderKitchen(){document.getElementById('kitchenTable').innerHTML=DB.kitchenOrders.map((k,i)=>`<tr class="border-b"><td>${k.id}</td><td>${k.from}</td><td>${k.items}</td><td><select onchange="updateKitchenStatus(${i},this.value)" class="text-xs border rounded p-1"><option ${k.status==='Pending'?'selected':''}>Pending</option><option ${k.status==='Cooking'?'selected':''}>Cooking</option><option ${k.status==='Ready'?'selected':''}>Ready</option><option ${k.status==='Done'?'selected':''}>Done</option></select></td><td><button onclick="DB.kitchenOrders.splice(${i},1);saveDB();renderKitchen()" class="bg-red-500 text-white px-1 rounded text-xs">Del</button></td></tr>`).join('');document.getElementById('kitchenPending').innerText=DB.kitchenOrders.filter(k=>k.status==='Pending').length;document.getElementById('kitchenCooking').innerText=DB.kitchenOrders.filter(k=>k.status==='Cooking').length;document.getElementById('kitchenReady').innerText=DB.kitchenOrders.filter(k=>k.status==='Ready').length;}
+function saveKitchenOrder(){const k={id:document.getElementById('kOrderId').value||'KIT'+Date.now(),from:document.getElementById('kFrom').value,items:document.getElementById('kItems').value,status:document.getElementById('kStatus').value,time:new Date().toLocaleString()};if(!k.items)return;DB.kitchenOrders.unshift(k);saveDB();renderKitchen();closeModal('kitchenOrderModal');logAudit(`Kitchen ${k.id}`);if(supabaseClient)syncToSupabase('kitchen_orders',k);}
+function updateKitchenStatus(i,v){DB.kitchenOrders[i].status=v;saveDB();renderKitchen();}
+function renderStock(){document.getElementById('stockTable').innerHTML=DB.stock.map((s,i)=>`<tr class="border-b"><td>${s.name}</td><td>${s.qty} ${s.unit}</td><td>${s.qty<10?'Low':'OK'} <button onclick="DB.stock.splice(${i},1);saveDB();renderStock()" class="text-red-500">x</button></td></tr>`).join('');document.getElementById('stockLow').innerText=DB.stock.filter(s=>s.qty<10).length;}
+function saveStock(){const s={name:document.getElementById('stockName').value,qty:parseInt(document.getElementById('stockQty').value||0),unit:document.getElementById('stockUnit').value||'pcs'};if(!s.name)return;DB.stock.push(s);saveDB();renderStock();closeModal('stockModal');}
+function renderKitchenExpenses(){document.getElementById('kitchenExpensesList').innerHTML=DB.kitchenExpenses.map(e=>`<div>${e.time} - ${e.name} - KES ${e.amount}</div>`).join('')||'No expenses';document.getElementById('kitchenExpensesTotal').innerText=DB.kitchenExpenses.reduce((s,x)=>s+x.amount,0);}
+function saveKitchenExpense(){const e={name:document.getElementById('kExpName').value,amount:parseInt(document.getElementById('kExpAmount').value||0),time:new Date().toLocaleString()};DB.kitchenExpenses.unshift(e);saveDB();renderKitchenExpenses();closeModal('kitchenExpenseModal');}
+function renderPOS(){document.getElementById('posProducts').innerHTML=DB.products.map(p=>`<button onclick="quickAdd('${p.name}',${p.price})" class="p-2 bg-blue-50 rounded text-xs border"><b>${p.name}</b><br>KES ${p.price}</button>`).join('');document.getElementById('salesTable').innerHTML=DB.sales.map(s=>`<tr class="border-b"><td class="p-2">${s.receipt}</td><td class="p-2">${s.items}</td><td class="p-2">KES ${s.total}</td><td class="p-2">KES ${s.tax||0}</td><td class="p-2">${s.method}</td><td class="p-2">${s.cashier}</td><td class="p-2 text-xs">${s.time}</td><td class="p-2"><button onclick="printReceipt('${s.receipt}')" class="bg-blue-600 text-white px-2 py-1 rounded text-xs">Print</button></td></tr>`).join('');updateCart();updateTodaySummary();}
+function addProduct(){const n=document.getElementById('newProdName').value.trim();const p=parseInt(document.getElementById('newProdPrice').value);if(!n||!p)return;DB.products.push({name:n,price:p});saveDB();renderPOS();document.getElementById('newProdName').value='';document.getElementById('newProdPrice').value='';}
+function quickAdd(name,price){DB.cart.push({name,price,qty:1});updateCart();}
+function addToCart(){const n=document.getElementById('posProdName').value;const p=parseInt(document.getElementById('posProdPrice').value);const q=parseInt(document.getElementById('posProdQty').value||1);if(!n||!p)return;DB.cart.push({name:n,price:p,qty:q});updateCart();closeModal('posSaleModal');}
+function updateCart(){let total=0;document.getElementById('posCart').innerHTML=DB.cart.map((c,i)=>{total+=c.price*c.qty;return `<div class="flex justify-between"><span>${c.name} x${c.qty}</span><span>KES ${c.price*c.qty} <button onclick="DB.cart.splice(${i},1);updateCart()" class="text-red-500 ml-2">x</button></span></div>`}).join('');const taxRate=parseInt(document.getElementById('taxRate').value||DB.business.tax||0);const tax=Math.round(total*taxRate/100);document.getElementById('posTotal').innerText='KES '+total;document.getElementById('posTax').innerText=taxRate;document.getElementById('posGrand').innerText='KES '+(total+tax);DB._lastTotal=total;DB._lastTax=tax;}
+function payPOS(method){if(DB.cart.length===0){alert('Cart empty');return;}const total=DB.cart.reduce((s,c)=>s+c.price*c.qty,0);const tax=DB._lastTax||0;const sale={receipt:'RCP'+Date.now(),items:DB.cart.map(c=>c.name+' x'+c.qty).join(', '),total:total+tax,subtotal:total,tax,method,cashier:currentUser.username,time:new Date().toLocaleString()};DB.sales.unshift(sale);DB.cart=[];saveDB();renderPOS();logAudit(`Sale ${sale.receipt} KES ${sale.total} ${method}`);if(supabaseClient)syncToSupabase('sales',sale);alert(`Success ${sale.receipt} KES ${sale.total}`);printReceipt(sale.receipt);}
+function updateTodaySummary(){const today=DB.sales.filter(s=>new Date(s.time).toDateString()===new Date().toDateString());document.getElementById('todaySales').innerText=today.reduce((s,x)=>s+x.total,0);document.getElementById('todayCash').innerText=today.filter(s=>s.method==='Cash').reduce((s,x)=>s+x.total,0);document.getElementById('todayMpesa').innerText=today.filter(s=>s.method==='M-Pesa').reduce((s,x)=>s+x.total,0);document.getElementById('todayCard').innerText=today.filter(s=>s.method==='Card').reduce((s,x)=>s+x.total,0);}
+function printReceipt(receipt){const s=DB.sales.find(x=>x.receipt===receipt);if(!s)return;const w=window.open('','_blank');w.document.write(`<pre style="font-family:monospace;width:300px">${DB.business.name}\n${DB.business.phone}\n----------------\nReceipt: ${s.receipt}\nCashier: ${s.cashier}\nTime: ${s.time}\n----------------\n${s.items}\n----------------\nSubtotal: KES ${s.subtotal||s.total}\nTax: KES ${s.tax||0}\nTOTAL: KES ${s.total}\nMethod: ${s.method}\n----------------\n${DB.business.receiptFooter}\n</pre>`);w.document.close();w.print();}
+function printLastReceipt(){if(DB.sales.length>0)printReceipt(DB.sales[0].receipt);}
+function renderEvents(){document.getElementById('eventsTable').innerHTML=DB.events.map((e,i)=>`<tr class="border-b"><td class="p-2">${e.event}</td><td class="p-2">${e.customer}<br><span class="text-xs">${e.phone}</span></td><td class="p-2">${e.date}</td><td class="p-2">${e.package}</td><td class="p-2">KES ${e.total}</td><td class="p-2">KES ${e.paid}</td><td class="p-2">KES ${e.total-e.paid}</td><td class="p-2"><select onchange="updateEventStatus(${i},this.value)" class="text-xs border rounded p-1"><option ${e.status==='Booked'?'selected':''}>Booked</option><option ${e.status==='Confirmed'?'selected':''}>Confirmed</option><option ${e.status==='Done'?'selected':''}>Done</option><option ${e.status==='Cancelled'?'selected':''}>Cancelled</option></select></td><td class="p-2"><button onclick="DB.events.splice(${i},1);saveDB();renderEvents()" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Del</button></td></tr>`).join('');}
+function saveEvent(){const e={event:document.getElementById('evName').value,customer:document.getElementById('evCustomer').value,phone:document.getElementById('evPhone').value,date:document.getElementById('evDate').value,package:document.getElementById('evPackage').value,total:parseInt(document.getElementById('evTotal').value||0),paid:parseInt(document.getElementById('evPaid').value||0),status:document.getElementById('evStatus').value,time:new Date().toLocaleString()};if(!e.event||!e.customer)return;DB.events.unshift(e);saveDB();renderEvents();closeModal('eventModal');logAudit(`Event ${e.event}`);if(supabaseClient)syncToSupabase('events',e);}
+function updateEventStatus(i,v){DB.events[i].status=v;saveDB();renderEvents();}
+function renderEventExpenses(){document.getElementById('eventExpensesList').innerHTML=DB.eventExpenses.map(e=>`<div>${e.time} - ${e.name} - KES ${e.amount}</div>`).join('')||'No expenses';}
+function saveEventExpense(){const e={name:document.getElementById('evExpName').value,amount:parseInt(document.getElementById('evExpAmount').value||0),time:new Date().toLocaleString()};DB.eventExpenses.unshift(e);saveDB();renderEventExpenses();closeModal('eventExpenseModal');}
+function renderUsers(){document.getElementById('usersList').innerHTML=DB.users.map(u=>`<div class="flex justify-between text-xs p-2 bg-gray-50 rounded"><span><b>${u.username}</b> - ${u.role} (${u.dept})</span><button onclick="deleteUser('${u.username}')" class="text-red-500 text-xs">Del</button></div>`).join('');}
+function renderDeptSettings(){const counts={};DB.users.forEach(u=>{counts[u.dept]=(counts[u.dept]||0)+1;});let h='';for(let k in counts){h+=`<div class="flex justify-between border-b py-1"><span>${k}</span><span>${counts[k]} users</span></div>`;}document.getElementById('deptSettings').innerHTML=h;}
+function saveUser(){const u={username:document.getElementById('newUsername').value.trim(),password:document.getElementById('newPassword').value.trim(),role:document.getElementById('newRole').value,dept:document.getElementById('newDept').value};if(!u.username||!u.password)return;if(DB.users.find(x=>x.username===u.username)){alert('User exists');return;}DB.users.push(u);saveDB();renderUsers();renderDeptSettings();closeModal('userModal');logAudit(`Created user ${u.username}`);}
+function deleteUser(username){if(username==='superadmin'){alert('Cannot delete superadmin');return;}if(!confirm('Delete '+username+'?'))return;DB.users=DB.users.filter(u=>u.username!==username);saveDB();renderUsers();renderDeptSettings();logAudit(`Deleted user ${username}`);}
+function saveBusiness(){DB.business.name=document.getElementById('businessName').value;DB.business.phone=document.getElementById('businessPhone').value;DB.business.email=document.getElementById('businessEmail').value;DB.business.address=document.getElementById('businessAddress').value;saveDB();document.getElementById('businessDisplay').innerText=DB.business.name;alert('Saved');logAudit('Business profile');}
+function savePaymentSettings(){DB.business.tax=parseInt(document.getElementById('taxRate').value||16);DB.business.currency=document.getElementById('currency').value||'KES';DB.business.receiptFooter=document.getElementById('receiptFooter').value||'';saveDB();alert('Payment saved');}
+function initSupabase(){const url=localStorage.getItem('supabaseUrl');const key=localStorage.getItem('supabaseKey');if(url&&key&&url.startsWith('http')){try{supabaseClient=supabase.createClient(url,key);document.getElementById('supabaseStatus').innerText='Supabase Connected';document.getElementById('supabaseStatus').className='text-green-600 text-xs text-center mt-3';document.getElementById('connectionStatus').innerText='Supabase Online';}catch(e){console.log(e);}}}
+function saveSupabaseConfig(){const url=document.getElementById('supabaseUrl').value.trim();const key=document.getElementById('supabaseKey').value.trim();if(!url||!key){alert('Weka URL na Key');return;}if(key.includes('service_role')){alert('Usitumie service_role!');return;}localStorage.setItem('supabaseUrl',url);localStorage.setItem('supabaseKey',key);initSupabase();alert('Saved! Refresh');}
+function testSupabase(){if(!supabaseClient){alert('No Supabase');return;}supabaseClient.from('security_logs').select('*').limit(1).then(r=>{alert(r.error?'Error: '+r.error.message:'Connected!');});}
+async function syncToSupabase(table,data){if(!supabaseClient)return;try{await supabaseClient.from(table).insert([data]);}catch(e){console.log(e);}}
+async function syncAllToSupabase(){if(!supabaseClient){alert('Connect first');return;}if(!confirm('Sync ALL to cloud?'))return;for(let s of DB.security)await syncToSupabase('security_logs',s);for(let b of DB.bookings)await syncToSupabase('bookings',b);for(let k of DB.kitchenOrders)await syncToSupabase('kitchen_orders',k);for(let s of DB.sales)await syncToSupabase('sales',s);for(let e of DB.events)await syncToSupabase('events',e);alert('Sync done');}
+function backupData(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='astintech_backup_'+Date.now()+'.json';a.click();}
+function restoreData(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){try{const data=JSON.parse(ev.target.result);Object.assign(DB,data);saveDB();loadAll();alert('Restored');}catch(err){alert('Invalid');}};reader.readAsText(file);}
+function clearAudit(){if(confirm('Clear audit?')){DB.audit=[];saveDB();renderAudit();}}
+function exportAudit(){const blob=new Blob([JSON.stringify(DB.audit,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='audit_'+Date.now()+'.json';a.click();}
+function clearAllData(){if(!confirm('Clear ALL DATA?'))return;const keep=DB.users.filter(u=>u.username==='superadmin');DB.security=[];DB.bookings=[];DB.housekeeping=[];DB.kitchenOrders=[];DB.stock=[{name:"Rice",qty:50,unit:"Kg"}];DB.kitchenExpenses=[];DB.sales=[];DB.events=[];DB.eventExpenses=[];DB.audit=[];DB.users=keep;saveDB();loadAll();alert('Cleared');}
+renderAudit();
 </script>
 </body>
 </html>
